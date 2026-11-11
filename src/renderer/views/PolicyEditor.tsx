@@ -901,8 +901,8 @@ export function PolicyEditor({
             )
           ) : (
             <>
-              <div className="flex items-end gap-3 border-b border-line px-6 pb-4 pt-5">
-                <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-end gap-3 border-b border-line px-6 pb-4 pt-5">
+                <div className="min-w-0 flex-[1_1_16rem]">
                   <h1
                     className="flex items-center gap-2 text-xl font-semibold"
                     title={current.group.name}
@@ -922,7 +922,7 @@ export function PolicyEditor({
                       </Badge>
                     )}
                   </h1>
-                  <p className="mt-1 text-sm text-fg-muted">
+                  <p className="mt-1 break-words text-sm text-fg-muted">
                     Priority {current.group.priority}.
                     {readOnly ? (
                       <span>
@@ -959,62 +959,67 @@ export function PolicyEditor({
                     )}
                   </p>
                 </div>
-                <div className="relative w-60">
-                  <Search
-                    size={14}
-                    className="absolute left-2.5 top-[9px] text-fg-faint"
-                  />
-                  <input
-                    className="input pl-8"
-                    aria-label="Filter rules"
-                    placeholder="Search all groups: name, IP, port…"
-                    title="Searches every group in this policy. IPs also find the CIDRs and ranges that contain them; ports find the ranges that cover them."
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                <div className="flex min-w-0 max-w-full flex-wrap items-center gap-3">
+                  <div className="relative min-w-0 flex-[1_1_15rem]">
+                    <Search
+                      size={14}
+                      className="absolute left-2.5 top-[9px] text-fg-faint"
+                    />
+                    <input
+                      className="input pl-8"
+                      aria-label="Filter rules"
+                      placeholder="Search all groups: name, IP, port…"
+                      title="Searches every group in this policy. IPs also find the CIDRs and ranges that contain them; ports find the ranges that cover them."
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                    />
+                  </div>
+                  {!readOnly && (
+                    <button
+                      className="btn-outline shrink-0"
+                      onClick={() => setModal({ kind: 'collection' })}
+                    >
+                      <Plus size={15} /> Add rule collection
+                    </button>
+                  )}
+                  {current.staged && !readOnly && (
+                    <button
+                      className="btn-ghost shrink-0"
+                      onClick={revertGroup}
+                    >
+                      <Undo2 size={15} />{' '}
+                      {current.isNew ? 'Discard new group' : 'Discard changes'}
+                    </button>
+                  )}
+                  <EllipsisMenu
+                    label="Group actions"
+                    items={[
+                      ...(readOnly
+                        ? []
+                        : [
+                            {
+                              label: 'Change priority…',
+                              icon: <Pencil size={14} />,
+                              onSelect: () => setModal({ kind: 'group' }),
+                            },
+                          ]),
+                      ...(current.isNew
+                        ? []
+                        : resourceMenuItems(current.group.id)),
+                      { label: '', divider: true },
+                      {
+                        label: 'Export this group to CSV…',
+                        icon: <Download size={14} />,
+                        onSelect: () => exportCsv('group'),
+                      },
+                      {
+                        label: 'Export all groups to CSV…',
+                        icon: <Download size={14} />,
+                        onSelect: () => exportCsv('policy'),
+                      },
+                    ]}
                   />
                 </div>
-                {!readOnly && (
-                  <button
-                    className="btn-outline"
-                    onClick={() => setModal({ kind: 'collection' })}
-                  >
-                    <Plus size={15} /> Add rule collection
-                  </button>
-                )}
-                {current.staged && !readOnly && (
-                  <button className="btn-ghost" onClick={revertGroup}>
-                    <Undo2 size={15} />{' '}
-                    {current.isNew ? 'Discard new group' : 'Discard changes'}
-                  </button>
-                )}
-                <EllipsisMenu
-                  label="Group actions"
-                  items={[
-                    ...(readOnly
-                      ? []
-                      : [
-                          {
-                            label: 'Change priority…',
-                            icon: <Pencil size={14} />,
-                            onSelect: () => setModal({ kind: 'group' }),
-                          },
-                        ]),
-                    ...(current.isNew
-                      ? []
-                      : resourceMenuItems(current.group.id)),
-                    { label: '', divider: true },
-                    {
-                      label: 'Export this group to CSV…',
-                      icon: <Download size={14} />,
-                      onSelect: () => exportCsv('group'),
-                    },
-                    {
-                      label: 'Export all groups to CSV…',
-                      icon: <Download size={14} />,
-                      onSelect: () => exportCsv('policy'),
-                    },
-                  ]}
-                />
               </div>
 
               {current.drift && (
@@ -1075,7 +1080,7 @@ export function PolicyEditor({
                     )}
                   </EmptyState>
                 ) : (
-                  <table className="w-full table-fixed text-left text-sm">
+                  <table className="w-full min-w-[1200px] table-fixed text-left text-sm">
                     <thead className="sticky top-0 z-10 bg-ink-900 text-xs text-fg-muted">
                       <tr className="border-b border-line">
                         <th className="w-7" aria-label="Change" />

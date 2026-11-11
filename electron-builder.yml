@@ -4,7 +4,7 @@
 appId: com.samsmithmsft.ezazfwruleman
 productName: EZ AzFW Manager
 copyright: Copyright (c) 2026 samsmith-MSFT
-# Must match Forge's packagerConfig.executableName; the portable launcher starts this file.
+# Must match Forge's executable name; Windows overrides this with the friendly product name.
 executableName: ez-azfw-manager
 artifactName: ez-azfw-manager-${version}-${os}-${arch}.${ext}
 directories:
@@ -12,6 +12,8 @@ directories:
 publish: null
 
 win:
+  # NSIS also uses this name for its default Program Files directory and shortcut target.
+  executableName: EZ AzFW Manager
   # An installer (Start menu and desktop shortcuts, uninstaller) plus the portable single file.
   target:
     - nsis
