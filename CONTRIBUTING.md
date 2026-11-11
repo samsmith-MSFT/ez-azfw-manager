@@ -14,11 +14,35 @@ Thanks for your interest in improving EZ AzFW Manager!
 2. Start the app with `npm start`.
 3. Before opening a pull request, run `npm run verify` (lint, type-check, and tests) and make sure it passes.
 
+`npm run dist -- --arch x64` (or `arm64`) builds release artifacts for the current OS into `out/release/`. Windows produces an installer and a portable executable; macOS produces a zip and Linux an AppImage. Use GitHub Actions for the full platform matrix.
+
+Set `EZAZFW_DEVTOOLS=1` to open development tools on startup. To use your own public-client Entra app registration, set `EZAZFW_CLIENT_ID` with a `http://localhost` redirect URI; `EZAZFW_TENANT_ID` can preselect a directory. The app deliberately ignores `AZURE_CLIENT_ID` and `AZURE_TENANT_ID` so other tools' service-principal settings do not override it.
+
 ## Pull requests
 
 - Keep changes focused; open an issue first for larger changes.
 - Add or update tests in `src/**/*.test.ts` for logic changes, particularly in `src/shared/`.
 - Format code with `npm run lint:fix`.
 - Add a line under **Unreleased** in [CHANGELOG.md](CHANGELOG.md) for user-visible changes.
+
+## Releasing
+
+1. Add a dated version section to [CHANGELOG.md](CHANGELOG.md) and run `npm version <version> --no-git-tag-version`.
+2. Run `npm run verify` and validate the affected release builds.
+3. Commit, then tag and push: `git tag v<version>` and `git push origin main v<version>`.
+
+The tag must match `package.json`. The [Release workflow](.github/workflows/release.yml) builds every supported platform into a draft, adds checksums and changelog-based notes, and publishes as Latest only after all builds succeed. Failed builds leave the release in draft; fix the failure and rerun the jobs or dispatch the workflow with the existing tag.
+
+### Optional signing
+
+Signing is opt-in through repository secrets:
+
+| Platform           | Settings                                                                                 |
+| ------------------ | ---------------------------------------------------------------------------------------- |
+| Windows            | `WINDOWS_CERTIFICATE` (base64 PFX), `WINDOWS_CERTIFICATE_PASSWORD`                       |
+| macOS              | `APPLE_CERTIFICATE` (base64 P12), `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY` |
+| macOS notarization | `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`                               |
+
+Local builds use `WINDOWS_CERTIFICATE_FILE`/`WINDOWS_CERTIFICATE_PASSWORD` and the corresponding Apple environment variables. Never commit signing material or credentials. Public signing and privacy commitments are in the README's [Code signing policy](README.md#code-signing-policy).
 
 By contributing, you agree that your contributions are licensed under the [MIT License](LICENSE).

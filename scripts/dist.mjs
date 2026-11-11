@@ -62,6 +62,15 @@ function run(pkgName, binName, args) {
 }
 
 run('@electron-forge/cli', 'electron-forge', ['package', '--arch', arch]);
+if (
+  platform === 'win32' &&
+  !fs.existsSync(path.join(prepackaged, `${productName}.exe`))
+) {
+  console.error(
+    `Missing packaged Windows executable: ${path.join(prepackaged, `${productName}.exe`)}. Refusing to build an installer with an invalid launch target.`,
+  );
+  process.exit(1);
+}
 run('electron-builder', 'electron-builder', [
   '--prepackaged',
   prepackaged,

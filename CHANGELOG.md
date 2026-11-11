@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-11-11
+
+### Fixed
+
+- Rules page headings, metadata, search and actions now wrap to fit the available pane width instead of overlapping when either sidebar is open.
+- Rules tables keep readable column widths and scroll horizontally in smaller windows instead of collapsing Source and Destination into Service and Action.
+- Windows builds now use **EZ AzFW Manager.exe** consistently for the packaged executable and installer launch target, with **EZ AzFW Manager** as the default fresh-install folder name. Public download filenames and the existing installer identity remain unchanged; upgrades can retain previously selected installation folders.
+- Windows distribution builds fail before creating an installer if the expected packaged executable is missing.
+- Updated Azure Identity to 4.14.1, removing the older nested MSAL dependency and resolving the two high-severity production dependency audit findings.
+
+### Changed
+
+- Updated Vitest to 5.1.0 and the React Vite plugin to 6.2.1.
+
 ## [1.5.0] - 2026-11-11
 
 ### Added
@@ -110,7 +124,8 @@ Initial public release.
 - Encrypted, OS key store–backed token cache.
 - Portable, no-install executables for Windows (x64 and Arm64 `.exe`), macOS (zipped `.app`, arm64 and x64), and Linux (x64 AppImage).
 
-[Unreleased]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.5.1...HEAD
+[1.5.1]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.2.0...v1.3.0

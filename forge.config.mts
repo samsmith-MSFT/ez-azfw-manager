@@ -29,7 +29,8 @@ const windowsSign = winCertFile
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
-    executableName: 'ez-azfw-manager',
+    executableName:
+      process.platform === 'win32' ? 'EZ AzFW Manager' : 'ez-azfw-manager',
     // Keep the original application ID so existing installations remain compatible.
     appBundleId: 'com.samsmithmsft.ezazfwruleman',
     appCategoryType: 'public.app-category.developer-tools',
@@ -42,8 +43,8 @@ const config: ForgeConfig = {
       CompanyName: 'samsmith-MSFT',
       FileDescription: 'EZ AzFW Manager',
       ProductName: 'EZ AzFW Manager',
-      InternalName: 'ez-azfw-manager',
-      OriginalFilename: 'ez-azfw-manager.exe',
+      InternalName: 'EZ AzFW Manager',
+      OriginalFilename: 'EZ AzFW Manager.exe',
     },
     ...(macIdentity ? { osxSign: { identity: macIdentity } } : {}),
     ...(notarize

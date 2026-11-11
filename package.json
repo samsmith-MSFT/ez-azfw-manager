@@ -1,7 +1,7 @@
 {
   "name": "ez-azfw-manager",
   "productName": "EZ AzFW Manager",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "private": true,
   "description": "Desktop app for managing Azure Firewalls, policies, rules and IP groups with a draft, review and commit workflow",
   "keywords": [
