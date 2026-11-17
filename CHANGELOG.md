@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-11-17
+
 ### Added
 
 - **Firewall logs.** A new tab streams Azure Firewall diagnostic logs live from an Event Hub, read with your own Microsoft Entra sign-in (no connection strings or keys). Filter by category, source, destination, action, protocol and port; hide DNS queries (on by default); pause without losing rows; open a row for all of its fields, including whether the firewall is one you manage here and which policy it uses. Rows are kept in memory only (newest 5,000) and cleared on sign-out and directory switch. **Export CSV** saves the rows shown to a file you choose.
@@ -16,6 +18,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - New dependency: `@azure/event-hubs`. Reading logs needs outbound AMQP on port 5671 to `*.servicebus.windows.net`.
+
+### Fixed
+
+- Serialize log connection transitions and discard callbacks from stopped or superseded receivers, preventing orphaned streams and logs arriving after disconnect.
+- Bind setup and cleanup confirmations to complete executable plans, full Azure resource scopes and account context rather than display text alone.
+
+### Security
+
+- Updated advisory-affected development dependency chains to patched `glob` 14.0.4 and `minimatch` 11.0.6.
+- The development-only `picomatch` advisory GHSA-fc5q-39xc-vjpf remains unresolved because no patched release is available. See SECURITY.md for scope and precautions; this release does not claim a clean dependency audit.
 
 ## [1.5.1] - 2026-11-11
 
@@ -135,7 +147,8 @@ Initial public release.
 - Encrypted, OS key store–backed token cache.
 - Portable, no-install executables for Windows (x64 and Arm64 `.exe`), macOS (zipped `.app`, arm64 and x64), and Linux (x64 AppImage).
 
-[Unreleased]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.5.1...HEAD
+[Unreleased]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.5.1...v1.6.0
 [1.5.1]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.3.0...v1.4.0
