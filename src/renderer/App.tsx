@@ -12,7 +12,11 @@ import { Firewalls } from './views/Firewalls';
 import { Policies } from './views/Policies';
 import { IpGroups } from './views/IpGroups';
 import { FlowTesterPage } from './views/FlowTesterPage';
+import { FirewallLogs } from './views/FirewallLogs';
+import { LogStreamProvider } from './logStream';
 import type { FlowHit } from '../shared/flow';
+import type { LogRuleRef } from '../shared/logRuleRef';
+import type { RuleSuggestion } from '../shared/logRuleSuggest';
 import { PolicyEditor, type PolicyOption } from './views/PolicyEditor';
 import { CommitDialog } from './views/CommitDialog';
 import { CommitStatus } from './views/CommitStatus';
@@ -63,6 +67,18 @@ export default function App() {
   };
   const [policyId, setPolicyId] = useState<string>();
   const [ruleFocus, setRuleFocus] = useState<FlowHit>();
+  const [logRule, setLogRule] = useState<LogRuleRef>();
+  const [newRule, setNewRule] = useState<{
+    suggestion: RuleSuggestion;
+    firewallPolicyId: string;
+  }>();
+  // The Rules view remounts on every visit, so a request from the logs must not outlive the one
+  // visit it was made for (it would reopen its dialog each time).
+  useEffect(() => {
+    if (tab === 'rules') return;
+    setLogRule(undefined);
+    setNewRule(undefined);
+  }, [tab]);
   const [showCommit, setShowCommit] = useState(false);
   const [confirmRevertAll, setConfirmRevertAll] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -529,7 +545,7 @@ export default function App() {
     setTab('rules');
   };
 
-  return (
+  const workspace = (
     <div className="flex h-full flex-col">
       <TitleBar
         bladeOpen={bladeOpen}
@@ -550,7 +566,24 @@ export default function App() {
           onSwitchTenant={switchTenant}
         />
         <main className="flex min-w-0 flex-1 flex-col">
-          {tab === 'ipGroups' ? (
+          {tab === 'logs' ? (
+            <FirewallLogs
+              managedFirewalls={managed}
+              onOpenRule={(ref) => {
+                // The rules view needs a workspace with the firewall's policy loaded.
+                setStage('workspace');
+                setPolicyId(ref.firewallPolicyId);
+                setLogRule({ ...ref });
+                setTab('rules');
+              }}
+              onCreateRule={(suggestion, firewallPolicyId) => {
+                setStage('workspace');
+                setPolicyId(firewallPolicyId);
+                setNewRule({ suggestion, firewallPolicyId });
+                setTab('rules');
+              }}
+            />
+          ) : tab === 'ipGroups' ? (
             <IpGroups
               key={account.tenantId}
               reloadKey={reloadKey}
@@ -608,6 +641,8 @@ export default function App() {
                   onStatus={setStatus}
                   reloadKey={reloadKey}
                   focus={ruleFocus}
+                  logRule={logRule}
+                  newRule={newRule}
                 />
               )}
               {tab === 'flow' && (
@@ -707,5 +742,10 @@ export default function App() {
       )}
       {deployOverlays}
     </div>
+  );
+
+  // Keyed by directory: the log stream and its rows start clean when the directory changes.
+  return (
+    <LogStreamProvider key={account.tenantId}>{workspace}</LogStreamProvider>
   );
 }

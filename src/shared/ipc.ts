@@ -26,6 +26,15 @@ import type {
 import type { CreateIpGroupRequest, IpGroupContext } from './ipGroups';
 import type { RuleImportChoices, RuleImportResult } from './ruleImport';
 import type { ThreatIntelMode } from './deploy';
+import type { EventHubInfo, LogSources } from './logSources';
+import type { CleanupReview } from './logCleanup';
+import type {
+  ProvisionProgress,
+  ProvisionRequest,
+  SetupContext,
+  SetupReview,
+} from './logProvision';
+import type { LogBatch, LogStreamConfig, LogStreamStatus } from './logStream';
 import type {
   FirewallAllocation,
   FirewallConfiguration,
@@ -82,6 +91,24 @@ export const IPC = {
   deployFirewall: 'deploy:start',
   registerNetworkProvider: 'deploy:registerNetwork',
   deployProgress: 'event:deployProgress',
+  logsGetConfig: 'logs:getConfig',
+  logsGetStatus: 'logs:getStatus',
+  logsStart: 'logs:start',
+  logsStop: 'logs:stop',
+  logsDiscover: 'logs:discover',
+  logsListHubs: 'logs:listHubs',
+  logsListConsumerGroups: 'logs:listConsumerGroups',
+  logsGrantReceiver: 'logs:grantReceiver',
+  logsCleanupReview: 'logs:cleanupReview',
+  logsCleanupApply: 'logs:cleanupApply',
+  logsListResourceGroups: 'logs:listResourceGroups',
+  logsSetupContext: 'logs:setupContext',
+  logsSetupCheckName: 'logs:setupCheckName',
+  logsSetupReview: 'logs:setupReview',
+  logsSetupApply: 'logs:setupApply',
+  logSetupProgress: 'event:logSetupProgress',
+  logBatch: 'event:logBatch',
+  logStatus: 'event:logStatus',
 } as const;
 
 /** Envelope used for every invoke() so the renderer receives clean error messages. */
@@ -184,4 +211,65 @@ export interface AzNetApi {
   /** Resolves when the deployment finishes (succeeded or failed). */
   deployFirewall(request: DeployRequest): Promise<DeployProgress>;
   onDeployProgress(listener: (progress: DeployProgress) => void): () => void;
+  /** The saved Event Hub for the current directory, or null. */
+  getLogStreamConfig(): Promise<LogStreamConfig | null>;
+  getLogStreamStatus(): Promise<LogStreamStatus>;
+  /** Validates and saves the settings, then (re)connects. Progress arrives as status events. */
+  /**
+   * `waitForRole` keeps retrying a missing-role error for a few minutes (use it right after the
+   * role was assigned).
+   */
+  startLogStream(
+    config: LogStreamConfig,
+    options?: { waitForRole?: boolean },
+  ): Promise<LogStreamStatus>;
+  stopLogStream(): Promise<void>;
+  /** Event Hubs namespaces, plus what the managed firewalls' diagnostic settings send where. */
+  discoverLogSources(): Promise<LogSources>;
+  listEventHubs(namespaceId: string): Promise<EventHubInfo[]>;
+  listConsumerGroups(namespaceId: string, eventHub: string): Promise<string[]>;
+  /**
+   * Assigns the signed-in user the Event Hubs Data Receiver role on the hub. Writes to Azure;
+   * resolves to the scope that was used.
+   */
+  grantLogReceiver(config: LogStreamConfig): Promise<string>;
+  /** Review removing the Event Hub destination of a setting whose namespace was deleted. Changes nothing. */
+  reviewLogCleanup(
+    firewallId: string,
+    settingName: string,
+  ): Promise<CleanupReview>;
+  /** Apply a reviewed cleanup; refuses if Azure changed since the review. Writes to Azure directly. */
+  applyLogCleanup(
+    firewallId: string,
+    settingName: string,
+    reviewHash: string,
+  ): Promise<{ action: 'trim' | 'delete' }>;
+  listLogResourceGroups(
+    subscriptionId: string,
+  ): Promise<{ name: string; location: string }[]>;
+  /** The firewalls' categories, current diagnostic settings and provider state, read from Azure. */
+  getLogSetupContext(
+    firewallIds: string[],
+    destinationSubscriptionId?: string,
+  ): Promise<SetupContext>;
+  checkEventHubNamespaceName(
+    subscriptionId: string,
+    name: string,
+  ): Promise<{ available: boolean; message?: string }>;
+  /** Everything the setup would change in Azure; changes nothing. */
+  reviewLogSetup(request: ProvisionRequest): Promise<SetupReview>;
+  /**
+   * Runs the reviewed setup (writes to Azure). Resolves when it finishes; progress arrives as
+   * events. `reviewHash` must come from the review of the same request.
+   */
+  applyLogSetup(
+    request: ProvisionRequest,
+    reviewHash: string,
+  ): Promise<ProvisionProgress>;
+  onLogSetupProgress(
+    listener: (progress: ProvisionProgress) => void,
+  ): () => void;
+  /** About one batch per second while connected. */
+  onLogBatch(listener: (batch: LogBatch) => void): () => void;
+  onLogStreamStatus(listener: (status: LogStreamStatus) => void): () => void;
 }
