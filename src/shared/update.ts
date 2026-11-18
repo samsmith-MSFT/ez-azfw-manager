@@ -4,6 +4,9 @@
 /** The repository whose releases the app updates from. */
 export const UPDATE_REPO = 'samsmith-MSFT/ez-azfw-manager';
 
+/** Where all releases are listed; opened by the manual "Check for updates" option. */
+export const RELEASES_PAGE_URL = `https://github.com/${UPDATE_REPO}/releases`;
+
 export const CHECKSUMS_FILE = 'SHA256SUMS.txt';
 
 /**
@@ -35,6 +38,8 @@ export interface UpdateInfo {
   /** Every release newer than the running version, newest first. */
   releases: ReleaseNotes[];
   installMode: InstallMode;
+  /** True when automatic checks are turned off (EZAZFW_NO_UPDATE_CHECK=1). */
+  checksDisabled: boolean;
 }
 
 export type UpdateStage =

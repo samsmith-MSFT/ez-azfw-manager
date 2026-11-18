@@ -1,5 +1,11 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import { AlertTriangle, CheckCircle2, Download, Loader2 } from 'lucide-react';
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Download,
+  Loader2,
+  RefreshCw,
+} from 'lucide-react';
 import { Modal } from './Modal';
 import { ReleaseNotesView } from './ReleaseNotesView';
 import {
@@ -15,23 +21,22 @@ let current: UpdateInfo | undefined;
 let started = false;
 const listeners = new Set<() => void>();
 
-function check(): void {
-  window.api
-    .checkForUpdate()
-    .then((info) => {
-      current = info;
-      listeners.forEach((l) => l());
-    })
-    // Offline or rate limited: stay quiet, try again later.
-    .catch(() => undefined);
+function check(): Promise<UpdateInfo> {
+  return window.api.checkForUpdate().then((info) => {
+    current = info;
+    listeners.forEach((l) => l());
+    return info;
+  });
 }
 
 function useUpdateInfo(): UpdateInfo | undefined {
   useEffect(() => {
     if (started) return;
     started = true;
-    check();
-    setInterval(check, CHECK_EVERY_MS);
+    // Offline or rate limited: stay quiet, try again later.
+    const quietly = () => void check().catch(() => undefined);
+    quietly();
+    setInterval(quietly, CHECK_EVERY_MS);
   }, []);
   return useSyncExternalStore(
     (listener) => {
@@ -55,11 +60,54 @@ function progressText(p: UpdateProgress): string {
   return p.message ?? '';
 }
 
-/** Shown at the top of the window when a newer version is published on GitHub. */
+/**
+ * Shown at the top of the window. When a newer version is published on GitHub it is a button
+ * for it; otherwise it is a small "Check for updates" button that checks on demand.
+ */
 export function UpdateButton() {
   const info = useUpdateInfo();
   const [open, setOpen] = useState(false);
-  if (!info?.available || !info.latestVersion) return null;
+  const [checking, setChecking] = useState(false);
+  const [manual, setManual] = useState<ManualResult>();
+
+  const checkNow = () => {
+    setChecking(true);
+    check()
+      .then((found) => {
+        if (found.available) setOpen(true);
+        else setManual({ kind: 'current', info: found });
+      })
+      .catch((err: Error) => setManual({ kind: 'error', message: err.message }))
+      .finally(() => setChecking(false));
+  };
+
+  if (!info?.available || !info.latestVersion) {
+    return (
+      <>
+        <button
+          type="button"
+          onClick={checkNow}
+          disabled={checking}
+          title="Check for updates"
+          aria-label="Check for updates"
+          className="no-drag mr-1 flex h-6 w-6 items-center justify-center rounded text-fg-muted hover:bg-ink-800 hover:text-fg disabled:opacity-60"
+        >
+          <RefreshCw
+            size={13}
+            aria-hidden
+            className={checking ? 'animate-spin' : undefined}
+          />
+        </button>
+        {manual && (
+          <CheckResultDialog
+            result={manual}
+            currentVersion={current?.currentVersion}
+            onClose={() => setManual(undefined)}
+          />
+        )}
+      </>
+    );
+  }
   return (
     <>
       <button
@@ -73,6 +121,78 @@ export function UpdateButton() {
       </button>
       {open && <UpdateDialog info={info} onClose={() => setOpen(false)} />}
     </>
+  );
+}
+
+type ManualResult =
+  | { kind: 'current'; info: UpdateInfo }
+  | { kind: 'error'; message: string };
+
+/** The answer to a manual check when there is nothing to install, with a way to the releases. */
+function CheckResultDialog({
+  result,
+  currentVersion,
+  onClose,
+}: {
+  result: ManualResult;
+  currentVersion?: string;
+  onClose: () => void;
+}) {
+  const [error, setError] = useState<string>();
+  const version =
+    result.kind === 'current' ? result.info.currentVersion : currentVersion;
+  const disabled = result.kind === 'current' && result.info.checksDisabled;
+  return (
+    <Modal
+      title="Check for updates"
+      subtitle={version ? `You have version ${version}` : undefined}
+      onClose={onClose}
+      footer={
+        <>
+          <button
+            className="btn-outline"
+            onClick={() =>
+              void window.api
+                .openReleasePage()
+                .catch((e: Error) => setError(e.message))
+            }
+          >
+            Open releases on GitHub
+          </button>
+          <button className="btn-primary" onClick={onClose}>
+            Close
+          </button>
+        </>
+      }
+    >
+      {result.kind === 'error' ? (
+        <div
+          role="alert"
+          className="flex gap-2 border border-deny/40 bg-deny/10 p-3 text-sm text-deny"
+        >
+          <AlertTriangle size={16} className="shrink-0" />
+          <span className="break-words">
+            Couldn't check for updates: {result.message} You can still look for
+            a newer version on the releases page.
+          </span>
+        </div>
+      ) : disabled ? (
+        <p className="text-sm text-fg-muted">
+          Update checks are turned off on this device. Open the releases page to
+          see whether a newer version is available.
+        </p>
+      ) : (
+        <p className="flex items-center gap-2 text-sm text-fg">
+          <CheckCircle2 size={14} className="text-allow" />
+          You're up to date.
+        </p>
+      )}
+      {error && (
+        <p role="alert" className="mt-3 text-sm text-deny">
+          {error}
+        </p>
+      )}
+    </Modal>
   );
 }
 
