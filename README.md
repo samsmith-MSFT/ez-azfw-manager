@@ -36,6 +36,19 @@ Choose the file for your operating system and processor on the [release page](ht
 
 The Windows installer needs administrator rights and adds shortcuts and an uninstaller. New installations use **EZ AzFW Manager** as the folder name; upgrades may retain an existing installation path. Uninstalling keeps your saved data.
 
+### Updating
+
+The app checks this repository's GitHub releases at start and every six hours. The **Check for updates** button at the top of the window checks right away. When a newer release exists, it becomes **Update to vX.Y.Z**. Click it to read the release notes for every version you are missing, then choose **Update**. If you turned automatic checks off (`EZAZFW_NO_UPDATE_CHECK=1`), the button's window tells you so and offers **Open releases on GitHub**.
+
+| Install type     | What **Update** does                                                                                      |
+| ---------------- | --------------------------------------------------------------------------------------------------------- |
+| Windows setup    | Downloads the installer, verifies it, and runs it (administrator approval required)                       |
+| Windows portable | Downloads the new file next to the old one (which you can then delete), verifies it, and restarts into it |
+| Linux AppImage   | Downloads, verifies, and replaces the AppImage, then restarts                                             |
+| macOS            | Opens the release page; download and replace the app manually                                             |
+
+Downloads come only from this repository's release assets over HTTPS and are checked against the SHA-256 in the same release's `SHA256SUMS.txt` before anything is run. The update is refused while you have unsaved draft changes or a commit in progress. Builds are unsigned, so this protects against corrupted downloads, not against a compromised repository. Set the environment variable `EZAZFW_NO_UPDATE_CHECK=1` to turn the check off.
+
 ### First launch on each OS
 
 Builds are currently unsigned, so Windows SmartScreen or macOS Gatekeeper may show a warning. Verify the download against the release's `SHA256SUMS.txt` before running it.
@@ -111,7 +124,7 @@ Policy snapshots and shared history use an Azure Blob Storage account you choose
 
 Firewall logs are held in memory only, never written to disk unless you export them. Log rows contain client IP addresses and destinations, so treat an exported CSV as sensitive.
 
-The app sends no telemetry or data to the maintainers. It connects to Microsoft Entra ID, Azure Resource Manager, your selected Azure Blob Storage and, for Firewall logs, your Event Hubs namespace, using your sign-in.
+The app sends no telemetry or data to the maintainers. It connects to Microsoft Entra ID, Azure Resource Manager, your selected Azure Blob Storage and, for Firewall logs, your Event Hubs namespace, using your sign-in. It also contacts GitHub to check for and download updates (see [Updating](#updating)); set `EZAZFW_NO_UPDATE_CHECK=1` to turn that off.
 
 ## Screenshots
 

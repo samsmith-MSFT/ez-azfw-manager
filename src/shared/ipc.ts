@@ -35,6 +35,7 @@ import type {
   SetupReview,
 } from './logProvision';
 import type { LogBatch, LogStreamConfig, LogStreamStatus } from './logStream';
+import type { UpdateInfo, UpdateProgress } from './update';
 import type {
   FirewallAllocation,
   FirewallConfiguration,
@@ -109,6 +110,10 @@ export const IPC = {
   logSetupProgress: 'event:logSetupProgress',
   logBatch: 'event:logBatch',
   logStatus: 'event:logStatus',
+  checkForUpdate: 'update:check',
+  installUpdate: 'update:install',
+  openReleasePage: 'update:openReleasePage',
+  updateProgress: 'event:updateProgress',
 } as const;
 
 /** Envelope used for every invoke() so the renderer receives clean error messages. */
@@ -203,6 +208,16 @@ export interface AzNetApi {
   openInPortal(resourceId: string): Promise<void>;
   /** Asks where to save, then writes the CSV; resolves to the path, or null if cancelled. */
   saveCsv(suggestedName: string, content: string): Promise<string | null>;
+  /** Looks on GitHub for a release newer than this version. */
+  checkForUpdate(): Promise<UpdateInfo>;
+  /**
+   * Downloads, verifies and applies the newest release found by the last check. Progress arrives
+   * as events; the result says whether the app is restarting or the user must open the file.
+   */
+  installUpdate(): Promise<UpdateProgress>;
+  /** Opens the newest release's page on GitHub in the browser. */
+  openReleasePage(): Promise<void>;
+  onUpdateProgress(listener: (progress: UpdateProgress) => void): () => void;
   onCommitProgress(listener: (progress: CommitProgress) => void): () => void;
   listSubscriptions(): Promise<SubscriptionInfo[]>;
   getDeployContext(subscriptionId: string): Promise<DeployContext>;

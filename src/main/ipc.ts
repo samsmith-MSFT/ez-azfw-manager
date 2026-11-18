@@ -36,6 +36,7 @@ import {
   type RuleImportChoices,
 } from '../shared/ruleImport';
 import * as snapshotStorage from './snapshotStorage';
+import * as updater from './updater';
 import { candidate } from './candidate';
 import { clearLookupCache, getRuleLookups } from './lookups';
 import { loadState, updateState } from './store';
@@ -705,6 +706,21 @@ export function registerIpc(getContents: () => WebContents | undefined): void {
     ].some((type) => isResourceIdOfType(id, type));
     if (!valid) throw new Error('Invalid resource ID.');
     await shell.openExternal(portalUrl(id as string));
+  });
+
+  // In-app update. The page sends no addresses or file names: the main process only ever uses
+  // the release it found itself on GitHub.
+  handle(IPC.checkForUpdate, () => updater.checkForUpdate());
+  handle(IPC.openReleasePage, () => updater.openReleasePage());
+  handle(IPC.installUpdate, () => {
+    let last = 0;
+    return updater.installUpdate((progress) => {
+      // Download progress arrives per chunk; the page only needs a few updates a second.
+      const now = Date.now();
+      if (progress.stage === 'downloading' && now - last < 100) return;
+      last = now;
+      send(IPC.updateProgress, progress);
+    });
   });
 
   handle(IPC.saveCsv, async (event, name: unknown, content: unknown) => {
