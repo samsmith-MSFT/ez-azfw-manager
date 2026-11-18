@@ -5,6 +5,7 @@ import type { CommitProgress } from './shared/types';
 import type { DeployProgress } from './shared/deploy';
 import type { LogBatch, LogStreamStatus } from './shared/logStream';
 import type { ProvisionProgress } from './shared/logProvision';
+import type { UpdateProgress } from './shared/update';
 
 async function call<T>(channel: string, ...args: unknown[]): Promise<T> {
   const result = (await ipcRenderer.invoke(channel, ...args)) as IpcResult<T>;
@@ -73,6 +74,14 @@ const api: AzNetApi = {
     call(IPC.createSnapshotStorageAccount, request),
   openInPortal: (resourceId) => call(IPC.openInPortal, resourceId),
   saveCsv: (name, content) => call(IPC.saveCsv, name, content),
+  checkForUpdate: () => call(IPC.checkForUpdate),
+  installUpdate: () => call(IPC.installUpdate),
+  openReleasePage: () => call(IPC.openReleasePage),
+  onUpdateProgress: (listener) => {
+    const wrapped = (_e: IpcRendererEvent, p: UpdateProgress) => listener(p);
+    ipcRenderer.on(IPC.updateProgress, wrapped);
+    return () => ipcRenderer.removeListener(IPC.updateProgress, wrapped);
+  },
   onCommitProgress: (listener) => {
     const wrapped = (_e: IpcRendererEvent, p: CommitProgress) => listener(p);
     ipcRenderer.on(IPC.commitProgress, wrapped);
