@@ -403,6 +403,26 @@ describe('ports', () => {
   });
 });
 
+describe('IPv4 literals in application target FQDNs', () => {
+  const app: ApplicationRule = {
+    ruleType: 'ApplicationRule',
+    name: 'to-webserver',
+    protocols: [{ protocolType: 'Http', port: 80 }],
+    sourceAddresses: ['10.0.0.0/8'],
+    targetFqdns: ['10.3.10.4'],
+  };
+
+  it('accepts a single IPv4 address, which Azure stores and matches as a host', () => {
+    expect(validateRule(app)).toEqual([]);
+    expect(validateRule({ ...app, targetFqdns: ['10.3.10.44'] })).toEqual([]);
+  });
+
+  it('still rejects CIDRs and ranges', () => {
+    for (const bad of ['10.3.10.0/24', '10.3.10.1-10.3.10.9'])
+      expect(validateRule({ ...app, targetFqdns: [bad] })).toHaveLength(1);
+  });
+});
+
 describe('FQDN wildcards', () => {
   const app: ApplicationRule = {
     ruleType: 'ApplicationRule',

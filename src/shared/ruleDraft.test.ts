@@ -7,6 +7,7 @@ import {
   emptyCollection,
   emptyRow,
   isBlankRow,
+  rowCellErrors,
   ruleFromRow,
   rowFromRule,
   setCollectionKind,
@@ -165,6 +166,33 @@ describe('row editing helpers', () => {
     const row = rowFromRule(net, 'Network');
     expect(duplicateRow(row, ['dns-to-dc', 'dns-to-dc-copy']).name).toBe(
       'dns-to-dc-copy2',
+    );
+  });
+});
+
+describe('application rule that names a host by its IPv4 address', () => {
+  const rule: ApplicationRule = {
+    ruleType: 'ApplicationRule',
+    name: 'allow-http-to-webserver',
+    protocols: [{ protocolType: 'Http', port: 80 }],
+    sourceIpGroups: [IPG],
+    targetFqdns: ['10.3.10.4'],
+  };
+
+  it('opens without a cell error and keeps the value', () => {
+    const row = rowFromRule(rule, 'Application');
+    expect(row.destField).toBe('targetFqdns');
+    expect(rowCellErrors(row, 'Application')).toEqual({});
+    expect(ruleFromRow(row, 'Application')).toMatchObject({
+      targetFqdns: ['10.3.10.4'],
+    });
+  });
+
+  it('still flags a malformed host name', () => {
+    const row = rowFromRule(rule, 'Application');
+    row.lists.targetFqdns = 'webserver';
+    expect(rowCellErrors(row, 'Application').targetFqdns).toMatch(
+      /valid host name/,
     );
   });
 });
