@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 /** Open modals, innermost last: Escape closes only the innermost one. */
@@ -96,7 +97,9 @@ export function Modal({
     }
   };
 
-  return (
+  // Portaled to <body>: a modal rendered inside the title bar (e.g. the update dialog) would sit
+  // in its `-webkit-app-region: drag` area, where Electron swallows every click.
+  return createPortal(
     <div
       className="fixed inset-0 z-40 flex items-center justify-center bg-ink-950/75 p-6"
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
@@ -139,7 +142,8 @@ export function Modal({
           </footer>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
