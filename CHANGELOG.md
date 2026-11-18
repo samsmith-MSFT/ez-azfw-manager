@@ -17,6 +17,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - New dependency: `@azure/event-hubs`. Reading logs needs outbound AMQP on port 5671 to `*.servicebus.windows.net`.
 
+### Fixed
+
+- An application rule that names its target by an IPv4 address in **Target FQDNs** (for example `10.3.10.4`) no longer fails the host name check. Azure accepts and stores such a rule, but the rules editor reported `"10.3.10.4" isn't a valid host name` and refused to save any change to its collection until the entry was removed. A single IPv4 address is now accepted there, in the rules editor and in CSV import; CIDRs and ranges still belong in the **IP/CIDR** destination type.
+
 ## [1.5.1] - 2026-11-11
 
 ### Fixed

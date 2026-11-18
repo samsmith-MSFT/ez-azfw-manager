@@ -305,7 +305,7 @@ export function changeKindOf(
 
 const NAME = /^[A-Za-z0-9][\w.-]{0,79}$/;
 const PORT = /^(\*|\d{1,5}(-\d{1,5})?)$/;
-const IPV4 =
+export const IPV4 =
   /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
 // Service tags, optionally regional: "AzureCloud", "Sql.WestUS2", "Internet".
 export const SERVICE_TAG = /^[A-Za-z][A-Za-z0-9]*(\.[A-Za-z][A-Za-z0-9-]*)?$/;
@@ -351,7 +351,7 @@ const ITEM_HELP: Record<ItemKind, string> = {
   ip: 'a single IPv4 address',
   fqdn: 'a host name such as db.contoso.com (no wildcards)',
   targetFqdn:
-    'a host name such as www.contoso.com, *.contoso.com or *contoso.com',
+    'a host name such as www.contoso.com, *.contoso.com or *contoso.com (or a single IPv4 address)',
   url: 'a URL without https://, such as www.contoso.com/path',
   ipGroup: 'an IP Group resource ID (/subscriptions/…/ipGroups/name)',
 };
@@ -367,7 +367,9 @@ function itemValid(kind: ItemKind, v: string): boolean {
     case 'fqdn':
       return !v.startsWith('*') && FQDN.test(v);
     case 'targetFqdn':
-      return v === '*' || FQDN.test(v);
+      // Azure stores any string here and an existing rule may name a host by its IPv4 address
+      // (an HTTP request to http://10.3.10.4); refusing it would block saving the whole collection.
+      return v === '*' || IPV4.test(v) || FQDN.test(v);
     case 'url':
       return !/^[a-z]+:\/\//i.test(v) && /^[^\s/]+\.[^\s/]+(\/\S*)?$/.test(v);
     case 'ipGroup':
