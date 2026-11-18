@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {
   CHECKSUMS_FILE,
+  RELEASES_PAGE_URL,
   UPDATE_REPO,
   installModeFor,
   isReleasePageUrl,
@@ -52,6 +53,7 @@ function toInfo(): UpdateInfo {
     latestVersion: releases[0]?.version,
     releases: releases.map(({ assets: _assets, ...notes }) => notes),
     installMode: installMode(),
+    checksDisabled: checksDisabled(),
   };
 }
 
@@ -72,10 +74,11 @@ export async function checkForUpdate(
   return toInfo();
 }
 
-/** Opens the newest release's page in the browser. */
+/** Opens the newest release's page in the browser, or the list of releases when there is none. */
 export async function openReleasePage(): Promise<void> {
-  const url = releases[0]?.url;
-  if (!url || !isReleasePageUrl(url)) throw new Error('No update to show.');
+  const url = releases[0]?.url ?? RELEASES_PAGE_URL;
+  if (!isReleasePageUrl(url) && url !== RELEASES_PAGE_URL)
+    throw new Error('No update to show.');
   await shell.openExternal(url);
 }
 

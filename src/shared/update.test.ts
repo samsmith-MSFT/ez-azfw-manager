@@ -9,6 +9,7 @@ import {
   parseChecksums,
   parseVersion,
   platformAssetName,
+  RELEASES_PAGE_URL,
   releaseNotesText,
 } from './update';
 
@@ -213,6 +214,14 @@ describe('installModeFor', () => {
     );
     expect(installModeFor({ platform: 'win32', packaged: false })).toBe(
       'manual',
+    );
+  });
+});
+
+describe('RELEASES_PAGE_URL', () => {
+  it('is the releases list of this repository', () => {
+    expect(RELEASES_PAGE_URL).toBe(
+      'https://github.com/samsmith-MSFT/ez-azfw-manager/releases',
     );
   });
 });

@@ -38,7 +38,7 @@ The Windows installer needs administrator rights and adds shortcuts and an unins
 
 ### Updating
 
-The app checks this repository's GitHub releases at start and every six hours. When a newer release exists, **Update to vX.Y.Z** appears at the top of the window. Click it to read the release notes for every version you are missing, then choose **Update**.
+The app checks this repository's GitHub releases at start and every six hours. The **Check for updates** button at the top of the window checks right away. When a newer release exists, it becomes **Update to vX.Y.Z**. Click it to read the release notes for every version you are missing, then choose **Update**. If you turned automatic checks off (`EZAZFW_NO_UPDATE_CHECK=1`), the button's window tells you so and offers **Open releases on GitHub**.
 
 | Install type     | What **Update** does                                                                                      |
 | ---------------- | --------------------------------------------------------------------------------------------------------- |
