@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { MoreHorizontal } from 'lucide-react';
 import { Logo } from './Logo';
+import { UpdateButton } from './UpdateButton';
 
 const isMac = navigator.userAgent.includes('Mac OS');
 // Width of the Windows/Linux min/max/close overlay, used if the browser doesn't report it.
@@ -18,7 +19,7 @@ export function TitleBar({
 }: {
   bladeOpen?: boolean;
   onToggleBlade?: () => void;
-  /** Right-aligned controls (e.g. the activity bell), kept clear of the window controls. */
+  /** Right-aligned controls (e.g. the activity bell), kept clear of the window controls. The update button always comes first. */
   actions?: ReactNode;
 }) {
   return (
@@ -44,17 +45,16 @@ export function TitleBar({
           <MoreHorizontal size={18} />
         </button>
       )}
-      {actions && (
-        <div
-          className="relative ml-auto flex items-center"
-          // Space taken by the OS window controls on the right (0 on macOS and in a browser).
-          style={{
-            marginRight: `max(${CONTROLS_FALLBACK}, calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw)))`,
-          }}
-        >
-          {actions}
-        </div>
-      )}
+      <div
+        className="relative ml-auto flex items-center"
+        // Space taken by the OS window controls on the right (0 on macOS and in a browser).
+        style={{
+          marginRight: `max(${CONTROLS_FALLBACK}, calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw)))`,
+        }}
+      >
+        <UpdateButton />
+        {actions}
+      </div>
     </header>
   );
 }
