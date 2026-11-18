@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-11-18
+
+### Fixed
+
+- An application rule that names its target by an IPv4 address in **Target FQDNs** (for example `10.3.10.4`) no longer fails the host name check. Azure accepts and stores such a rule, but the rules editor reported `"10.3.10.4" isn't a valid host name` and refused to save any change to its collection until the entry was removed. A single IPv4 address is now accepted there, in the rules editor and in CSV import; CIDRs and ranges still belong in the **IP/CIDR** destination type. Thanks to @cloudchristoph.
+
 ## [1.6.0] - 2026-11-17
 
 ### Added
@@ -147,7 +153,8 @@ Initial public release.
 - Encrypted, OS key store–backed token cache.
 - Portable, no-install executables for Windows (x64 and Arm64 `.exe`), macOS (zipped `.app`, arm64 and x64), and Linux (x64 AppImage).
 
-[Unreleased]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.6.1...HEAD
+[1.6.1]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.5.1...v1.6.0
 [1.5.1]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.4.0...v1.5.0

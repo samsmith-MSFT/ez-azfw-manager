@@ -2,6 +2,7 @@
 // grid logic is unit-tested without React.
 import {
   FQDN,
+  IPV4,
   IP_GROUP_ID,
   SERVICE_TAG,
   isValidPort,
@@ -562,7 +563,8 @@ export function cellError(
     case 'targetFqdns':
       return summarize(
         items(cell)
-          .map((v) => fqdnProblem(v, true))
+          // A host named by its IPv4 address is stored here as well (see itemValid in rules.ts).
+          .map((v) => (IPV4.test(v) ? undefined : fqdnProblem(v, true)))
           .filter((e): e is string => !!e),
       );
     case 'targetUrls':
