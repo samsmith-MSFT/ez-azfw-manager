@@ -168,7 +168,7 @@ All screenshots use Contoso demo data from a demo environment, not a production 
 <details>
 <summary>Flow testing, snapshots and shared history</summary>
 
-![A traffic flow denied by an inherited rule](docs/images/flow-tester.png)
+![A traffic flow evaluated against the policy chain, showing the matching rule](docs/images/flow-tester.png)
 ![Policy snapshots with expandable groups](docs/images/snapshots.png)
 ![Shared commit history and change details](docs/images/commit-history.png)
 
