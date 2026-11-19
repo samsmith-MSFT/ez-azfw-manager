@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.6.2] - 2026-11-19
+
+### Changed
+
+- Updated Electron to 45.3.2 and the Vite and Lucide icon libraries to their latest patch releases. No change to features or behaviour.
+
 ## [1.6.1] - 2026-11-18
 
 ### Added
@@ -157,7 +163,8 @@ Initial public release.
 - Encrypted, OS key store–backed token cache.
 - Portable, no-install executables for Windows (x64 and Arm64 `.exe`), macOS (zipped `.app`, arm64 and x64), and Linux (x64 AppImage).
 
-[Unreleased]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.6.1...HEAD
+[Unreleased]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.6.2...HEAD
+[1.6.2]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.5.1...v1.6.0
 [1.5.1]: https://github.com/samsmith-MSFT/ez-azfw-manager/compare/v1.5.0...v1.5.1
