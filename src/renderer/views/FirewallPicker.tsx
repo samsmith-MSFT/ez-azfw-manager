@@ -4,6 +4,8 @@ import { EllipsisMenu, SelectMenu } from '../components/Dropdown';
 import { useResourceMenuItems } from '../components/resourceMenu';
 import { EmptyState, StatusDot, Truncate } from '../components/ui';
 import { QuipSpinner } from '../components/QuipSpinner';
+import { errorMessage, useToast } from '../components/Toast';
+import { TIERS } from '../../shared/deploy';
 import { resourceName } from '../../shared/resourceId';
 import type { FirewallSummary, TenantInfo } from '../../shared/types';
 
@@ -40,6 +42,7 @@ export function FirewallPicker({
   const [query, setQuery] = useState('');
   const [directory, setDirectory] = useState('');
   const resourceMenuItems = useResourceMenuItems();
+  const toast = useToast();
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -191,9 +194,33 @@ export function FirewallPicker({
             icon={<Flame size={22} />}
             title="No Azure Firewalls found"
           >
-            Check that you signed in to the right tenant and have at least
-            Reader access. To create one, use Deploy firewall on the Firewalls
-            page.
+            <p>
+              EZ AzFW Manager is designed to manage existing Azure Firewalls. If
+              you expected to see one, check that you signed in to the right
+              directory and have at least Reader access.
+            </p>
+            <p className="mt-3">
+              To deploy your first firewall, follow a Microsoft Learn guide for
+              your tier. When deployment is complete, click Refresh here.
+            </p>
+            <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+              {TIERS.map((tier) => (
+                <li key={tier}>
+                  <button
+                    type="button"
+                    className="text-azure underline hover:text-azure-hover"
+                    aria-label={`Open the Azure Firewall ${tier} deployment guide in your browser`}
+                    onClick={() =>
+                      void window.api
+                        .openFirewallDeploymentGuide(tier)
+                        .catch((err) => toast('error', errorMessage(err)))
+                    }
+                  >
+                    {tier} deployment guide
+                  </button>
+                </li>
+              ))}
+            </ul>
           </EmptyState>
         ) : (
           <table className="w-full table-fixed text-left text-sm">
