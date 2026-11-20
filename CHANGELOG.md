@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Updated Electron from 45.3.3 to 45.4.1 for upstream Chromium and Node.js security and memory-safety fixes. No change to features or behaviour.
+
 ### Fixed
 
 - When no firewalls are found, the firewall picker links to Microsoft Learn guides for deploying your first Basic, Standard, or Premium firewall instead of pointing to a page you can't open yet.
