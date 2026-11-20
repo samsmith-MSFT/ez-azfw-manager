@@ -20,6 +20,7 @@ import type {
   DeployContext,
   DeployProgress,
   DeployRequest,
+  FirewallTier,
   NetworkAvailability,
   SubscriptionInfo,
 } from './deploy';
@@ -85,6 +86,7 @@ export const IPC = {
   setSnapshotStorageAccount: 'snapshots:setStorageAccount',
   createSnapshotStorageAccount: 'snapshots:createStorageAccount',
   openInPortal: 'app:openInPortal',
+  openFirewallDeploymentGuide: 'app:openFirewallDeploymentGuide',
   saveCsv: 'app:saveCsv',
   commitProgress: 'event:commitProgress',
   listSubscriptions: 'deploy:subscriptions',
@@ -206,6 +208,7 @@ export interface AzNetApi {
     request: CreateSnapshotStorageRequest,
   ): Promise<SnapshotStorageSetup>;
   openInPortal(resourceId: string): Promise<void>;
+  openFirewallDeploymentGuide(tier: FirewallTier): Promise<void>;
   /** Asks where to save, then writes the CSV; resolves to the path, or null if cancelled. */
   saveCsv(suggestedName: string, content: string): Promise<string | null>;
   /** Looks on GitHub for a release newer than this version. */

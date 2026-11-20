@@ -73,6 +73,8 @@ const api: AzNetApi = {
   createSnapshotStorageAccount: (request) =>
     call(IPC.createSnapshotStorageAccount, request),
   openInPortal: (resourceId) => call(IPC.openInPortal, resourceId),
+  openFirewallDeploymentGuide: (tier) =>
+    call(IPC.openFirewallDeploymentGuide, tier),
   saveCsv: (name, content) => call(IPC.saveCsv, name, content),
   checkForUpdate: () => call(IPC.checkForUpdate),
   installUpdate: () => call(IPC.installUpdate),

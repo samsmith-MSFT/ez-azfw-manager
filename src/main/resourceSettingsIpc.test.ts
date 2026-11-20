@@ -23,12 +23,13 @@ const mocks = vi.hoisted(() => ({
   policy: vi.fn(),
   firewall: vi.fn(),
   validate: vi.fn(),
+  openExternal: vi.fn(),
 }));
 vi.mock('electron', () => ({
   app: {},
   BrowserWindow: {},
   dialog: {},
-  shell: {},
+  shell: { openExternal: mocks.openExternal },
   ipcMain: {
     handle: (name: string, handler: Handler) =>
       mocks.handlers.set(name, handler),
@@ -117,6 +118,28 @@ async function invoke(name: string, ...args: unknown[]) {
   if (!handler) throw new Error(`Missing IPC handler ${name}`);
   return handler(event, ...args);
 }
+
+describe('firewall deployment guide IPC', () => {
+  it.each([
+    ['Basic', 'deploy-firewall-basic-portal-policy'],
+    ['Standard', 'tutorial-firewall-deploy-portal-policy'],
+    ['Premium', 'premium-portal'],
+  ])('opens the Microsoft Learn guide for %s', async (tier, path) => {
+    expect(await invoke(IPC.openFirewallDeploymentGuide, tier)).toMatchObject({
+      ok: true,
+    });
+    expect(mocks.openExternal).toHaveBeenCalledExactlyOnceWith(
+      `https://learn.microsoft.com/en-us/azure/firewall/${path}`,
+    );
+  });
+
+  it('does not let the renderer supply an arbitrary URL', async () => {
+    expect(
+      await invoke(IPC.openFirewallDeploymentGuide, 'https://example.com'),
+    ).toMatchObject({ ok: false });
+    expect(mocks.openExternal).not.toHaveBeenCalled();
+  });
+});
 
 describe('settings IPC and candidate integration', () => {
   it('does not drop staged DNS settings when the existing mode slider is used', async () => {

@@ -708,6 +708,20 @@ export function registerIpc(getContents: () => WebContents | undefined): void {
     await shell.openExternal(portalUrl(id as string));
   });
 
+  // Only the tier comes from the renderer, never an arbitrary external address.
+  handle(IPC.openFirewallDeploymentGuide, async (_e, tier: unknown) => {
+    const paths = {
+      Basic: 'deploy-firewall-basic-portal-policy',
+      Standard: 'tutorial-firewall-deploy-portal-policy',
+      Premium: 'premium-portal',
+    } satisfies Record<FirewallTier, string>;
+    if (tier !== 'Basic' && tier !== 'Standard' && tier !== 'Premium')
+      throw new Error('Unknown Azure Firewall tier.');
+    await shell.openExternal(
+      `https://learn.microsoft.com/en-us/azure/firewall/${paths[tier]}`,
+    );
+  });
+
   // In-app update. The page sends no addresses or file names: the main process only ever uses
   // the release it found itself on GitHub.
   handle(IPC.checkForUpdate, () => updater.checkForUpdate());
