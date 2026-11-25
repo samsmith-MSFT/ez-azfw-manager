@@ -51,7 +51,7 @@ export function CandidateTray({
     <div
       role="region"
       aria-label="Uncommitted changes"
-      className={`flex h-12 shrink-0 animate-tray-in items-center gap-3 border-t-2 pl-4 pr-3 ${groups ? 'border-candidate bg-[#221B10]' : 'border-azure/60 bg-ink-900'}`}
+      className={`flex min-h-12 shrink-0 animate-tray-in flex-wrap items-center gap-2 border-t-2 px-3 py-2 narrow:gap-3 narrow:pl-4 ${groups ? 'border-candidate bg-[#221B10]' : 'border-azure/60 bg-ink-900'}`}
     >
       {groups > 0 && (
         <span
@@ -59,7 +59,7 @@ export function CandidateTray({
           aria-hidden
         />
       )}
-      <p className="min-w-0 flex-1 truncate text-sm text-fg">
+      <p className="min-w-0 flex-[1_1_16rem] text-sm text-fg">
         {summary && (
           <button
             type="button"
@@ -105,7 +105,7 @@ export function CandidateTray({
         )}
       </p>
       {(groups > 0 || (status.unsaved && !committing)) && (
-        <>
+        <div className="flex flex-wrap items-center gap-2">
           <button className="btn-ghost" onClick={onDiscard} disabled={!groups}>
             Discard all
           </button>
@@ -123,7 +123,7 @@ export function CandidateTray({
           >
             Review and commit
           </button>
-        </>
+        </div>
       )}
     </div>
   );

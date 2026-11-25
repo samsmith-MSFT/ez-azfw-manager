@@ -79,6 +79,13 @@ const api: AzNetApi = {
   checkForUpdate: () => call(IPC.checkForUpdate),
   installUpdate: () => call(IPC.installUpdate),
   openReleasePage: () => call(IPC.openReleasePage),
+  getZoom: () => call(IPC.getZoom),
+  setZoom: (factor) => call(IPC.setZoom, factor),
+  onZoomChanged: (listener) => {
+    const wrapped = (_e: IpcRendererEvent, factor: number) => listener(factor);
+    ipcRenderer.on(IPC.zoomChanged, wrapped);
+    return () => ipcRenderer.removeListener(IPC.zoomChanged, wrapped);
+  },
   onUpdateProgress: (listener) => {
     const wrapped = (_e: IpcRendererEvent, p: UpdateProgress) => listener(p);
     ipcRenderer.on(IPC.updateProgress, wrapped);

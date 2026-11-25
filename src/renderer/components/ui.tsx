@@ -1,6 +1,34 @@
 import type { ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
 
+export function PageHeader({
+  title,
+  subtitle,
+  actions,
+}: {
+  title: ReactNode;
+  subtitle?: ReactNode;
+  actions?: ReactNode;
+}) {
+  return (
+    <header className="flex flex-wrap items-end gap-3 border-b border-line px-4 pb-4 pt-5 narrow:px-6">
+      <div className="min-w-0 flex-[1_1_16rem]">
+        <div className="min-w-0 [overflow-wrap:anywhere]">{title}</div>
+        {subtitle && (
+          <div className="mt-1 text-sm text-fg-muted [overflow-wrap:anywhere]">
+            {subtitle}
+          </div>
+        )}
+      </div>
+      {actions && (
+        <div className="flex max-w-full flex-wrap items-center gap-3">
+          {actions}
+        </div>
+      )}
+    </header>
+  );
+}
+
 export function Spinner({
   label,
   size = 16,

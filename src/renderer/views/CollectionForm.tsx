@@ -294,7 +294,7 @@ function RowDetails({
   errors: CellErrors;
 }) {
   return (
-    <div className="flex items-start gap-4 border-l-2 border-azure/40 bg-ink-900/60 px-3 py-2.5">
+    <div className="flex flex-wrap items-start gap-4 border-l-2 border-azure/40 bg-ink-900/60 px-3 py-2.5">
       <label className="block min-w-0 flex-1">
         <span className="mb-0.5 block text-xs text-fg-muted">Description</span>
         <input
@@ -610,7 +610,7 @@ export function CollectionForm({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto_auto_7rem] items-start gap-4">
+      <div className="grid grid-cols-1 items-start gap-4 narrow:grid-cols-[minmax(0,1fr)_auto_auto_7rem]">
         <label className="block">
           <span className="label">Collection name</span>
           <input
@@ -691,8 +691,8 @@ export function CollectionForm({
         </ul>
       )}
 
-      <div className="border border-line">
-        <table className="w-full table-fixed text-left text-sm">
+      <div className="overflow-x-auto border border-line">
+        <table className="w-full min-w-[720px] table-fixed text-left text-sm">
           <thead className="bg-ink-900 text-xs text-fg-muted">
             <tr className="border-b border-line">
               <th className="w-7" aria-label="Details" />

@@ -16,7 +16,7 @@ import {
 import { EllipsisMenu } from '../components/Dropdown';
 import { Segmented } from '../components/Segmented';
 import { useResourceMenuItems } from '../components/resourceMenu';
-import { EmptyState, Spinner } from '../components/ui';
+import { EmptyState, PageHeader, Spinner } from '../components/ui';
 import { parseResourceId, sameResourceId } from '../../shared/resourceId';
 import { FilterBar } from '../components/FilterBar';
 import { TreeLines, treeIndent } from '../components/TreeLines';
@@ -436,21 +436,21 @@ export function Policies({
   const parentCount = rows.length - managedCount;
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-end gap-3 border-b border-line px-6 pb-4 pt-5">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-xl font-semibold">Policies</h1>
-          <p className="mt-1 text-sm text-fg-muted">
+    <div className="flex h-full min-h-0 flex-col overflow-y-auto">
+      <PageHeader
+        title={<h1 className="text-xl font-semibold">Policies</h1>}
+        subtitle={
+          <>
             {managedCount} {managedCount === 1 ? 'policy' : 'policies'} applied
             to your firewalls
             {parentCount > 0 &&
               `, plus ${parentCount} parent ${parentCount === 1 ? 'policy' : 'policies'} they inherit from`}
             . Threat-intelligence buttons change the local draft; save and
             commit to apply them.
-          </p>
-        </div>
-        {loading && <Spinner label="Loading policy details…" />}
-      </div>
+          </>
+        }
+        actions={loading ? <Spinner label="Loading policy details…" /> : null}
+      />
       <FilterBar
         items={rows}
         values={values}

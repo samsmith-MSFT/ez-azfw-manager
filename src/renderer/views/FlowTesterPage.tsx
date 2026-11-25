@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AlertTriangle, Route } from 'lucide-react';
 import { SelectMenu } from '../components/Dropdown';
-import { EmptyState, Spinner } from '../components/ui';
+import { EmptyState, PageHeader, Spinner } from '../components/ui';
 import { errorMessage } from '../components/Toast';
 import { RuleLookupsContext, type LookupsState } from '../lookups';
 import { loadPolicyChain } from '../policyChain';
@@ -114,17 +114,11 @@ export function FlowTesterPage({
 
   return (
     <RuleLookupsContext.Provider value={lookups}>
-      <div className="flex h-full flex-col">
-        <div className="flex items-end gap-3 border-b border-line px-6 pb-4 pt-5">
-          <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-semibold">Flow tester</h1>
-            <p className="mt-1 text-sm text-fg-muted">
-              Which rule would handle this traffic? Checks a policy's rules in
-              Azure's processing order, including uncommitted changes in your
-              draft.
-            </p>
-          </div>
-        </div>
+      <div className="flex h-full min-h-0 flex-col overflow-y-auto">
+        <PageHeader
+          title={<h1 className="text-xl font-semibold">Flow tester</h1>}
+          subtitle="Which rule would handle this traffic? Checks a policy's rules in Azure's processing order, including uncommitted changes in your draft."
+        />
         {!policies.length ? (
           <EmptyState icon={<Route size={22} />} title="No policies to test">
             Use Choose firewalls to show on the Firewalls page to show firewalls

@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- The main window now restores its normal size and position safely across display changes, and remembers manual zoom from the new **View** menu. Zoom shortcuts support 75–300%, stay aligned with the native title-bar controls, and no longer depend on the packaged Chromium menu.
+- The shell now reflows by CSS viewport tier: the title, page headers, draft tray and dialogs wrap at narrow widths, while navigation and Rules sidebars collapse to temporary overlays without overwriting saved preferences.
+
 ### Fixed
 
 - When no firewalls are found, the firewall picker links to Microsoft Learn guides for deploying your first Basic, Standard, or Premium firewall instead of pointing to a page you can't open yet.

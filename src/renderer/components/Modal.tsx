@@ -101,7 +101,7 @@ export function Modal({
   // in its `-webkit-app-region: drag` area, where Electron swallows every click.
   return createPortal(
     <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-ink-950/75 p-6"
+      className="fixed inset-0 z-40 flex items-center justify-center bg-ink-950/75 p-3 narrow:p-6"
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
@@ -111,9 +111,9 @@ export function Modal({
         aria-labelledby={titleId}
         tabIndex={-1}
         onKeyDown={trapTab}
-        className={`flex max-h-full w-full ${widthClass} flex-col border border-line bg-ink-850 shadow-[0_24px_60px_rgba(4,10,20,0.6)] focus:outline-none`}
+        className={`flex max-h-full min-h-0 w-full ${widthClass} flex-col border border-line bg-ink-850 shadow-[0_24px_60px_rgba(4,10,20,0.6)] focus:outline-none`}
       >
-        <header className="flex items-start gap-3 border-b border-line px-5 py-3.5">
+        <header className="flex items-start gap-3 border-b border-line px-3 py-3 narrow:px-5 narrow:py-3.5">
           <div className="min-w-0 flex-1">
             <h2 id={titleId} className="truncate text-lg font-semibold text-fg">
               {title}
@@ -133,11 +133,11 @@ export function Modal({
             <X size={16} />
           </button>
         </header>
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+        <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3 narrow:px-5 narrow:py-4">
           {children}
         </div>
         {footer && (
-          <footer className="flex items-center justify-end gap-2 border-t border-line px-5 py-3">
+          <footer className="flex flex-wrap items-center justify-end gap-2 border-t border-line px-3 py-3 narrow:px-5">
             {footer}
           </footer>
         )}

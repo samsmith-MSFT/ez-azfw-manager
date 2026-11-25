@@ -27,13 +27,20 @@ import {
   PanelLeftOpen,
 } from 'lucide-react';
 import { readSetting, writeSetting } from '../storage';
+import { useTier } from '../tier';
 
 const LIST_PANEL_KEY = 'ez-azfw-ruleman.groups-panel';
 import { EllipsisMenu, SelectMenu } from '../components/Dropdown';
 import { useResourceMenuItems } from '../components/resourceMenu';
 import { loadPolicyChain } from '../policyChain';
 import { ConfirmModal } from '../components/Modal';
-import { EmptyState, Badge, Truncate, ValueList } from '../components/ui';
+import {
+  EmptyState,
+  Badge,
+  PageHeader,
+  Truncate,
+  ValueList,
+} from '../components/ui';
 import { QuipSpinner } from '../components/QuipSpinner';
 import { errorMessage, useToast } from '../components/Toast';
 import {
@@ -210,13 +217,40 @@ export function PolicyEditor({
   newRule?: { suggestion: RuleSuggestion; firewallPolicyId: string };
 }) {
   const toast = useToast();
+  const tier = useTier();
   const [listOpen, setListOpen] = useState(
     () => readSetting(LIST_PANEL_KEY) !== 'collapsed',
   );
+  const [listOverlayOpen, setListOverlayOpen] = useState(false);
+  const listToggle = useRef<HTMLButtonElement>(null);
+  const listPanel = useRef<HTMLElement>(null);
+  const listUsesOverlay = tier === 'compact' || tier === 'narrow';
+  const listAlwaysOpen = tier === 'wide' || tier === 'ultrawide';
+  const shownListOpen = listUsesOverlay
+    ? listOverlayOpen
+    : listAlwaysOpen || listOpen;
+  const closeListOverlay = useCallback(() => {
+    setListOverlayOpen(false);
+    requestAnimationFrame(() => listToggle.current?.focus());
+  }, []);
   const toggleList = () => {
+    if (listUsesOverlay) {
+      if (listOverlayOpen) closeListOverlay();
+      else setListOverlayOpen(true);
+      return;
+    }
+    if (listAlwaysOpen) return;
     writeSetting(LIST_PANEL_KEY, listOpen ? 'collapsed' : 'open');
     setListOpen(!listOpen);
   };
+  useEffect(() => {
+    if (!listUsesOverlay) setListOverlayOpen(false);
+  }, [listUsesOverlay]);
+  useEffect(() => {
+    if (!listUsesOverlay || !listOverlayOpen) return;
+    const frame = requestAnimationFrame(() => listPanel.current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [listUsesOverlay, listOverlayOpen]);
   const [view, setView] = useState<PolicyView | null>(null);
   /** Parent (base) policies, nearest first. Their groups are processed before this policy's. */
   const [parents, setParents] = useState<PolicyView[]>([]);
@@ -668,7 +702,10 @@ export function PolicyEditor({
     return (
       <button
         key={group.id}
-        onClick={() => setGroupId(group.id)}
+        onClick={() => {
+          setGroupId(group.id);
+          if (listUsesOverlay) closeListOverlay();
+        }}
         aria-current={active ? 'true' : undefined}
         className={`flex h-9 w-full items-center gap-3 border-l-2 pl-[14px] pr-3 text-left ${
           active
@@ -758,13 +795,33 @@ export function PolicyEditor({
 
   return (
     <RuleLookupsContext.Provider value={lookups}>
-      <div className="flex h-full min-h-0">
+      <div className="relative flex h-full min-h-0">
+        {listUsesOverlay && listOverlayOpen && (
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-label="Close policy and rule collection groups"
+            className="absolute inset-0 z-20 bg-ink-950/60"
+            onClick={closeListOverlay}
+          />
+        )}
         <aside
-          className={`flex shrink-0 flex-col border-r border-line transition-[width] duration-150 ${listOpen ? 'w-64' : 'w-[52px]'}`}
+          ref={listPanel}
+          tabIndex={-1}
+          className={`flex shrink-0 flex-col overflow-y-auto border-r border-line transition-[width] duration-150 ${shownListOpen ? 'w-64' : 'w-[52px]'} ${listUsesOverlay && listOverlayOpen ? 'absolute inset-y-0 left-0 z-30 shadow-[12px_0_30px_rgba(4,10,20,0.45)]' : ''}`}
+          role={listUsesOverlay && listOverlayOpen ? 'dialog' : undefined}
+          aria-modal={listUsesOverlay && listOverlayOpen ? true : undefined}
           aria-label="Policy and rule collection groups"
+          onKeyDown={(event) => {
+            if (event.key === 'Escape' && listUsesOverlay && listOverlayOpen) {
+              event.preventDefault();
+              closeListOverlay();
+            }
+          }}
         >
-          {!listOpen && (
+          {!shownListOpen && (
             <button
+              ref={listToggle}
               type="button"
               onClick={toggleList}
               aria-label="Show policy and rule collection groups"
@@ -775,20 +832,23 @@ export function PolicyEditor({
               <PanelLeftOpen size={18} />
             </button>
           )}
-          <div className={listOpen ? 'contents' : 'hidden'}>
+          <div className={shownListOpen ? 'contents' : 'hidden'}>
             <div className="p-4 pb-3">
               <div className="flex items-center justify-between">
                 <span className="label !mb-0">Policy</span>
-                <button
-                  type="button"
-                  onClick={toggleList}
-                  aria-label="Hide policy and rule collection groups"
-                  aria-expanded
-                  title="Hide policy and rule collection groups"
-                  className="btn-ghost -mr-2 h-7 w-7 justify-center px-0"
-                >
-                  <PanelLeftClose size={16} />
-                </button>
+                {!listAlwaysOpen && (
+                  <button
+                    ref={listToggle}
+                    type="button"
+                    onClick={toggleList}
+                    aria-label="Hide policy and rule collection groups"
+                    aria-expanded
+                    title="Hide policy and rule collection groups"
+                    className="btn-ghost h-7 w-7 justify-center px-0"
+                  >
+                    <PanelLeftClose size={16} />
+                  </button>
+                )}
               </div>
               <div className="mt-1">
                 <SelectMenu
@@ -825,9 +885,11 @@ export function PolicyEditor({
               </dl>
             )}
 
-            <div className="flex items-center justify-between py-2 pl-4 pr-2">
-              <h2 className="text-sm font-semibold">Rule collection groups</h2>
-              <div className="flex">
+            <div className="flex flex-wrap items-center gap-2 py-2 pl-4 pr-2">
+              <h2 className="min-w-0 flex-1 text-sm font-semibold">
+                Rule collection groups
+              </h2>
+              <div className="ml-auto flex shrink-0">
                 <button
                   className="btn-ghost w-8 justify-center px-0"
                   onClick={() => setModal({ kind: 'newGroup' })}
@@ -907,7 +969,7 @@ export function PolicyEditor({
           </div>
         </aside>
 
-        <section className="flex min-w-0 flex-1 flex-col">
+        <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
           {loading && !view ? (
             <div className="flex flex-1 items-center justify-center">
               <QuipSpinner topic="policy" />
@@ -942,13 +1004,15 @@ export function PolicyEditor({
             )
           ) : (
             <>
-              <div className="flex flex-wrap items-end gap-3 border-b border-line px-6 pb-4 pt-5">
-                <div className="min-w-0 flex-[1_1_16rem]">
+              <PageHeader
+                title={
                   <h1
-                    className="flex items-center gap-2 text-xl font-semibold"
+                    className="flex flex-wrap items-center gap-2 text-xl font-semibold"
                     title={current.group.name}
                   >
-                    <span className="truncate">{current.group.name}</span>
+                    <span className="min-w-0 break-words">
+                      {current.group.name}
+                    </span>
                     {current.isNew && (
                       <Badge
                         tone="candidate"
@@ -963,7 +1027,9 @@ export function PolicyEditor({
                       </Badge>
                     )}
                   </h1>
-                  <p className="mt-1 break-words text-sm text-fg-muted">
+                }
+                subtitle={
+                  <>
                     Priority {current.group.priority}.
                     {readOnly ? (
                       <span>
@@ -998,70 +1064,74 @@ export function PolicyEditor({
                         </span>
                       )
                     )}
-                  </p>
-                </div>
-                <div className="flex min-w-0 max-w-full flex-wrap items-center gap-3">
-                  <div className="relative min-w-0 flex-[1_1_15rem]">
-                    <Search
-                      size={14}
-                      className="absolute left-2.5 top-[9px] text-fg-faint"
+                  </>
+                }
+                actions={
+                  <>
+                    <div className="relative min-w-0 flex-[1_1_15rem]">
+                      <Search
+                        size={14}
+                        className="absolute left-2.5 top-[9px] text-fg-faint"
+                      />
+                      <input
+                        className="input pl-8"
+                        aria-label="Filter rules"
+                        placeholder="Search all groups: name, IP, port…"
+                        title="Searches every group in this policy. IPs also find the CIDRs and ranges that contain them; ports find the ranges that cover them."
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                      />
+                    </div>
+                    {!readOnly && (
+                      <button
+                        className="btn-outline shrink-0"
+                        onClick={() => setModal({ kind: 'collection' })}
+                      >
+                        <Plus size={15} /> Add rule collection
+                      </button>
+                    )}
+                    {current.staged && !readOnly && (
+                      <button
+                        className="btn-ghost shrink-0"
+                        onClick={revertGroup}
+                      >
+                        <Undo2 size={15} />{' '}
+                        {current.isNew
+                          ? 'Discard new group'
+                          : 'Discard changes'}
+                      </button>
+                    )}
+                    <EllipsisMenu
+                      label="Group actions"
+                      items={[
+                        ...(readOnly
+                          ? []
+                          : [
+                              {
+                                label: 'Change priority…',
+                                icon: <Pencil size={14} />,
+                                onSelect: () => setModal({ kind: 'group' }),
+                              },
+                            ]),
+                        ...(current.isNew
+                          ? []
+                          : resourceMenuItems(current.group.id)),
+                        { label: '', divider: true },
+                        {
+                          label: 'Export this group to CSV…',
+                          icon: <Download size={14} />,
+                          onSelect: () => exportCsv('group'),
+                        },
+                        {
+                          label: 'Export all groups to CSV…',
+                          icon: <Download size={14} />,
+                          onSelect: () => exportCsv('policy'),
+                        },
+                      ]}
                     />
-                    <input
-                      className="input pl-8"
-                      aria-label="Filter rules"
-                      placeholder="Search all groups: name, IP, port…"
-                      title="Searches every group in this policy. IPs also find the CIDRs and ranges that contain them; ports find the ranges that cover them."
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                    />
-                  </div>
-                  {!readOnly && (
-                    <button
-                      className="btn-outline shrink-0"
-                      onClick={() => setModal({ kind: 'collection' })}
-                    >
-                      <Plus size={15} /> Add rule collection
-                    </button>
-                  )}
-                  {current.staged && !readOnly && (
-                    <button
-                      className="btn-ghost shrink-0"
-                      onClick={revertGroup}
-                    >
-                      <Undo2 size={15} />{' '}
-                      {current.isNew ? 'Discard new group' : 'Discard changes'}
-                    </button>
-                  )}
-                  <EllipsisMenu
-                    label="Group actions"
-                    items={[
-                      ...(readOnly
-                        ? []
-                        : [
-                            {
-                              label: 'Change priority…',
-                              icon: <Pencil size={14} />,
-                              onSelect: () => setModal({ kind: 'group' }),
-                            },
-                          ]),
-                      ...(current.isNew
-                        ? []
-                        : resourceMenuItems(current.group.id)),
-                      { label: '', divider: true },
-                      {
-                        label: 'Export this group to CSV…',
-                        icon: <Download size={14} />,
-                        onSelect: () => exportCsv('group'),
-                      },
-                      {
-                        label: 'Export all groups to CSV…',
-                        icon: <Download size={14} />,
-                        onSelect: () => exportCsv('policy'),
-                      },
-                    ]}
-                  />
-                </div>
-              </div>
+                  </>
+                }
+              />
 
               {current.drift && (
                 <div className="mx-6 mt-4 flex items-start gap-2 border-l-2 border-deny bg-deny/10 px-3 py-2 text-sm">

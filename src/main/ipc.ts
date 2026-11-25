@@ -136,7 +136,22 @@ function assertCandidateId(value: unknown): asserts value is string {
     throw new Error('Invalid draft resource ID.');
 }
 
-export function registerIpc(getContents: () => WebContents | undefined): void {
+interface ZoomIpc {
+  get(): number;
+  set(factor: number): number;
+}
+
+export function registerIpc(
+  getContents: () => WebContents | undefined,
+  zoom?: ZoomIpc,
+): void {
+  handle(IPC.getZoom, () => zoom?.get() ?? 1);
+  handle(IPC.setZoom, (_e, factor: unknown) => {
+    if (typeof factor !== 'number' || !Number.isFinite(factor))
+      throw new Error('Invalid zoom factor.');
+    if (!zoom) throw new Error('Zoom control is not available yet.');
+    return zoom.set(factor);
+  });
   // Progress keeps coming after the window is closed (e.g. on macOS); drop it then.
   const send = (channel: string, payload: unknown) => {
     const contents = getContents();

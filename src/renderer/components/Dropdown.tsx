@@ -104,9 +104,12 @@ export function Dropdown({
   const place = useCallback(() => {
     const anchor = button.current?.getBoundingClientRect();
     if (!anchor) return;
-    const style: CSSProperties = { position: 'fixed' };
-    if (fullWidth) style.width = anchor.width;
-    else style.minWidth = anchor.width;
+    const style: CSSProperties = {
+      position: 'fixed',
+      maxWidth: 'calc(100vw - 1rem)',
+    };
+    if (fullWidth) style.width = Math.min(anchor.width, window.innerWidth - 16);
+    else style.minWidth = Math.min(anchor.width, window.innerWidth - 16);
     if (align === 'right') style.right = window.innerWidth - anchor.right;
     else style.left = anchor.left;
     if (flipUp.current) style.bottom = window.innerHeight - anchor.top + 4;
@@ -135,6 +138,14 @@ export function Dropdown({
     if (!open || !position || !menu.current) return;
     const rect = menu.current.getBoundingClientRect();
     const anchor = button.current?.getBoundingClientRect();
+    if (rect.right > window.innerWidth - 8)
+      setPosition((current) => ({
+        ...current,
+        left: Math.max(8, window.innerWidth - 8 - rect.width),
+        right: undefined,
+      }));
+    else if (rect.left < 8)
+      setPosition((current) => ({ ...current, left: 8, right: undefined }));
     // Flip up only when it doesn't fit below but does fit above.
     if (
       !flipUp.current &&
@@ -244,7 +255,7 @@ export function Dropdown({
             role="menu"
             tabIndex={-1}
             style={position ?? { position: 'fixed', visibility: 'hidden' }}
-            className={`z-50 ${fullWidth ? '' : widthClass} flex flex-col overflow-hidden border border-line bg-ink-850 shadow-[0_16px_40px_rgba(4,10,20,0.55)] focus:outline-none`}
+            className={`z-50 ${fullWidth ? '' : widthClass} flex max-h-[calc(100vh-1rem)] max-w-[calc(100vw-1rem)] flex-col overflow-hidden border border-line bg-ink-850 shadow-[0_16px_40px_rgba(4,10,20,0.55)] focus:outline-none`}
           >
             {header && (
               <div className="border-b border-line px-3 py-2">{header}</div>
@@ -269,7 +280,7 @@ export function Dropdown({
               </div>
             )}
             <div
-              className={`py-1 ${searchable ? 'max-h-64 overflow-y-auto' : ''}`}
+              className={`min-h-0 overflow-y-auto py-1 ${searchable ? 'max-h-64' : ''}`}
             >
               {visible.map((item, i) =>
                 item.divider ? (

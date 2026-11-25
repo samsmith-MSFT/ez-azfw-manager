@@ -2,6 +2,13 @@
 module.exports = {
   content: ['./index.html', './src/renderer/**/*.{ts,tsx}'],
   theme: {
+    // Breakpoints are CSS pixels, so window size and zoom feed the same responsive rules.
+    screens: {
+      narrow: '720px',
+      lg: '1024px',
+      wide: '1680px',
+      ultra: '2400px',
+    },
     // Square, console-like geometry: containers have no radius, controls barely any.
     borderRadius: {
       none: '0',

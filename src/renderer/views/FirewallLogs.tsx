@@ -13,7 +13,13 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { Badge, EmptyState, Notice, Spinner } from '../components/ui';
+import {
+  Badge,
+  EmptyState,
+  Notice,
+  PageHeader,
+  Spinner,
+} from '../components/ui';
 import { SelectMenu } from '../components/Dropdown';
 import { Modal } from '../components/Modal';
 import { errorMessage, useToast } from '../components/Toast';
@@ -143,19 +149,26 @@ export function FirewallLogs({
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="border-b border-line px-6 pb-3 pt-5">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <h1 className="text-xl font-semibold">Firewall logs</h1>
-          <StatusChip state={status.state} detail={status.detail} />
-          {config && !showForm && (
-            <>
+    <div className="flex h-full min-h-0 flex-col overflow-y-auto">
+      <PageHeader
+        title={
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="text-xl font-semibold">Firewall logs</h1>
+            <StatusChip state={status.state} detail={status.detail} />
+            {config && !showForm && (
               <span
-                className="truncate font-mono text-xs text-fg-muted"
+                className="min-w-0 break-all font-mono text-xs text-fg-muted"
                 title={`${config.namespace} · ${config.eventHub} · ${config.consumerGroup}`}
               >
                 {config.namespace} / {config.eventHub}
               </span>
+            )}
+          </div>
+        }
+        subtitle="Live Azure Firewall diagnostic logs from an Event Hub, read with your own sign-in. Nothing is saved to disk unless you export it."
+        actions={
+          config && !showForm ? (
+            <>
               <button
                 type="button"
                 className={running ? 'btn-outline' : 'btn-primary'}
@@ -173,13 +186,9 @@ export function FirewallLogs({
                 Event Hub settings
               </button>
             </>
-          )}
-        </div>
-        <p className="mt-1 text-sm text-fg-muted">
-          Live Azure Firewall diagnostic logs from an Event Hub, read with your
-          own sign-in. Nothing is saved to disk unless you export it.
-        </p>
-      </div>
+          ) : null
+        }
+      />
 
       {showForm && (
         <LogConnectionForm

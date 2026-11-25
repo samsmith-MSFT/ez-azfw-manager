@@ -28,7 +28,7 @@ export function SignIn({
   };
 
   return (
-    <div className="flex flex-1 items-center px-16">
+    <div className="flex min-h-0 flex-1 items-start overflow-y-auto px-4 py-6 narrow:items-center narrow:px-16 narrow:py-8">
       <div className="w-full max-w-[26rem]">
         <Logo size={40} />
         <h1 className="mt-5 text-[28px] font-bold leading-tight">

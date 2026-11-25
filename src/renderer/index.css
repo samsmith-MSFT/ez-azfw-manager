@@ -49,7 +49,7 @@
   }
 
   .btn {
-    @apply inline-flex h-8 items-center gap-1.5 rounded px-3 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40;
+    @apply inline-flex min-h-8 items-center gap-1.5 whitespace-nowrap rounded px-3 py-1 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40;
   }
   .btn-primary {
     @apply btn bg-azure text-ink-950 hover:bg-azure-hover;
@@ -68,7 +68,7 @@
   }
 
   .input {
-    @apply h-8 w-full rounded border border-line bg-ink-950 px-2.5 text-sm text-fg placeholder:text-fg-faint focus:border-azure focus:outline-none;
+    @apply min-h-8 w-full rounded border border-line bg-ink-950 px-2.5 py-1 text-sm text-fg placeholder:text-fg-faint focus:border-azure focus:outline-none;
   }
   textarea.input {
     @apply h-auto py-1.5;

@@ -26,7 +26,7 @@ import {
   useStoredFilters,
   type FilterValues,
 } from '../filters';
-import { EmptyState, StatusDot } from '../components/ui';
+import { EmptyState, PageHeader, StatusDot } from '../components/ui';
 import { resourceName } from '../../shared/resourceId';
 import type { CandidateStatus, FirewallSummary } from '../../shared/types';
 import {
@@ -246,23 +246,25 @@ export function Firewalls({
   }, [shown]);
   const subscriptions = new Set(firewalls.map((f) => f.subscriptionId)).size;
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-end gap-3 border-b border-line px-6 pb-4 pt-5">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-xl font-semibold">Firewalls</h1>
-          <p className="mt-1 text-sm text-fg-muted">
-            {firewalls.length
-              ? `Managing ${firewalls.length} ${firewalls.length === 1 ? 'firewall' : 'firewalls'} in ${subscriptions} ${subscriptions === 1 ? 'subscription' : 'subscriptions'}.`
-              : 'No firewalls are being managed yet.'}
-          </p>
-        </div>
-        <button className="btn-outline" onClick={onChooseFirewalls}>
-          <SlidersHorizontal size={15} /> Choose firewalls to show
-        </button>
-        <button className="btn-outline" onClick={onDeploy}>
-          <Plus size={15} /> Deploy firewall
-        </button>
-      </div>
+    <div className="flex h-full min-h-0 flex-col overflow-y-auto">
+      <PageHeader
+        title={<h1 className="text-xl font-semibold">Firewalls</h1>}
+        subtitle={
+          firewalls.length
+            ? `Managing ${firewalls.length} ${firewalls.length === 1 ? 'firewall' : 'firewalls'} in ${subscriptions} ${subscriptions === 1 ? 'subscription' : 'subscriptions'}.`
+            : 'No firewalls are being managed yet.'
+        }
+        actions={
+          <>
+            <button className="btn-outline" onClick={onChooseFirewalls}>
+              <SlidersHorizontal size={15} /> Choose firewalls to show
+            </button>
+            <button className="btn-outline" onClick={onDeploy}>
+              <Plus size={15} /> Deploy firewall
+            </button>
+          </>
+        }
+      />
       <FilterBar
         items={firewalls}
         values={FIREWALL_FILTERS}

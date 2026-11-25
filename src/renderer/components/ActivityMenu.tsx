@@ -180,7 +180,7 @@ export function ActivityMenu({
         <div
           role="dialog"
           aria-label="Activity"
-          className="absolute right-0 top-full z-50 mt-px flex max-h-[min(28rem,calc(100vh-4rem))] w-96 flex-col border border-line bg-ink-850 shadow-[0_16px_40px_rgba(4,10,20,0.55)]"
+          className="absolute right-0 top-full z-50 mt-px flex max-h-[min(28rem,calc(100vh-4rem))] w-[min(24rem,calc(100vw-2rem))] flex-col border border-line bg-ink-850 shadow-[0_16px_40px_rgba(4,10,20,0.55)]"
         >
           <div className="flex items-center justify-between border-b border-line px-3 py-2">
             <h2 className="text-sm font-semibold text-fg">Activity</h2>

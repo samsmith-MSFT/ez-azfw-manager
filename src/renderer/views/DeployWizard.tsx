@@ -656,9 +656,9 @@ export function DeployWizard({
       {ctx.network.message}
     </Notice>
   ) : step === 0 ? (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 gap-4 narrow:grid-cols-2">
       {zoneNotice && (
-        <div className="col-span-2">
+        <div className="narrow:col-span-2">
           <Notice
             tone="info"
             title="Availability zones updated"
@@ -784,7 +784,7 @@ export function DeployWizard({
             : 'Not applicable to Virtual WAN hubs'}
         </label>
       </Field>
-      <div className="col-span-2">
+      <div className="narrow:col-span-2">
         <span className="label">Tags</span>
         <div className="space-y-1.5">
           {tags.map((t, i) => {
@@ -858,7 +858,7 @@ export function DeployWizard({
     </div>
   ) : step === 1 ? (
     <div className="space-y-4">
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3">
         <TargetCard
           active={targetKind === 'vnet-existing'}
           icon={<Network size={18} />}
@@ -883,8 +883,8 @@ export function DeployWizard({
       </div>
 
       {targetKind === 'vnet-existing' && (
-        <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2">
+        <div className="grid grid-cols-1 gap-4 narrow:grid-cols-2">
+          <div className="narrow:col-span-2">
             <Field
               label="Virtual network"
               hint={`Only VNets in ${regionName} are listed: the firewall must be in the same region as its VNet. Change the region in Basics.`}
@@ -964,7 +964,7 @@ export function DeployWizard({
       )}
 
       {targetKind === 'vnet-new' && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 narrow:grid-cols-2">
           <Field label="Resource group" htmlFor="vnet-rg">
             <ResourceGroupPicker
               id="vnet-rg"
@@ -1057,8 +1057,8 @@ export function DeployWizard({
       )}
 
       {targetKind === 'hub' && (
-        <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2">
+        <div className="grid grid-cols-1 gap-4 narrow:grid-cols-2">
+          <div className="narrow:col-span-2">
             <Field
               label="Virtual hub"
               hint={`Only hubs in ${regionName} are listed: the firewall must be in its hub's region. Hubs that already have a firewall can't be selected.`}
@@ -1138,7 +1138,7 @@ export function DeployWizard({
           />
         </Field>
       ) : (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 narrow:grid-cols-2">
           <Field
             label="Policy name"
             htmlFor="policy-name"
@@ -1188,7 +1188,7 @@ export function DeployWizard({
               }))}
             />
           </Field>
-          <div className="col-span-2">
+          <div className="narrow:col-span-2">
             <Field
               label="Parent policy (optional)"
               hint="Inherit rules from a parent policy of the same tier — like a Panorama shared device group."
@@ -1223,7 +1223,7 @@ export function DeployWizard({
     </div>
   ) : (
     <div className="space-y-4">
-      <dl className="grid grid-cols-[10rem,1fr] gap-x-4 gap-y-1.5 border-y border-line py-3 text-sm">
+      <dl className="grid grid-cols-[auto,minmax(0,1fr)] gap-x-4 gap-y-1.5 border-y border-line py-3 text-sm narrow:grid-cols-[10rem,1fr]">
         <dt className="text-fg-faint">Firewall</dt>
         <dd className="truncate text-fg">
           {request?.name || '—'}, {tier} tier
