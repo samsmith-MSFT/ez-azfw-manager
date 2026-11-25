@@ -275,6 +275,34 @@ async function applyAction(webContents, action) {
       'log details panel',
       `globalThis.document.querySelector('aside[aria-label="Log row details"]')`,
     );
+    const overlay = await webContents.executeJavaScript(`
+      globalThis.document.querySelector('aside[aria-label="Log row details"]')?.getAttribute('role') === 'dialog'
+    `);
+    if (overlay) {
+      await waitForPage(
+        webContents,
+        'log details focus',
+        `globalThis.document.activeElement?.matches('aside[aria-label="Log row details"]')`,
+      );
+      await webContents.executeJavaScript(`(() => {
+        globalThis.document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        return true;
+      })()`);
+      await waitForPage(
+        webContents,
+        'log row focus return',
+        `globalThis.document.activeElement?.hasAttribute('data-row-id')`,
+      );
+      await webContents.executeJavaScript(`(() => {
+        globalThis.document.activeElement.click();
+        return true;
+      })()`);
+      await waitForPage(
+        webContents,
+        'reopened log details focus',
+        `globalThis.document.activeElement?.matches('aside[aria-label="Log row details"]')`,
+      );
+    }
   } else if (action === 'collection-modal') {
     await clickButton(webContents, 'Add rule collection');
     await waitForPage(

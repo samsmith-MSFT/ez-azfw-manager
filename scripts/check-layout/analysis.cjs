@@ -317,8 +317,11 @@ function analyzeLayout() {
       Time: 96,
       Category: 104,
       Proto: 64,
-      Port: 56,
+      Source: 176,
+      Destination: 176,
+      Port: 64,
       Action: 88,
+      'Rule info': 160,
     };
     const rows = [
       ...logGrid.querySelectorAll('[role="row"][data-row-id]'),
@@ -326,8 +329,9 @@ function analyzeLayout() {
     for (const row of rows) {
       [...row.querySelectorAll('[role="gridcell"]')].forEach((cell, index) => {
         const name = labels[index] ?? `Column ${index + 1}`;
-        if (!(name in minimums) && name !== 'Time' && name !== 'Port') return;
+        if (!(name in minimums)) return;
         const rect = cell.getBoundingClientRect();
+        if (rect.width <= 0.5 || !cell.getClientRects().length) return;
         const textWidth = cell.scrollWidth;
         const minimumWidth = minimums[name];
         fixedDataCells.push({

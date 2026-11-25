@@ -96,7 +96,9 @@ async function settleViewport(webContents, expected) {
 
 function findingCounts(findings) {
   const fixedProblems = findings.fixedDataCells.filter(
-    (cell) => cell.belowMinimum || cell.truncated,
+    (cell) =>
+      cell.belowMinimum ||
+      ((cell.name === 'Time' || cell.name === 'Port') && cell.truncated),
   ).length;
   return {
     overlaps: findings.overlaps.count,

@@ -193,6 +193,9 @@ const FIREWALL_FILTERS: FilterValues<FirewallSummary> = {
   tag: (f) => tagPairs(f.tags),
 };
 
+const FIREWALL_COLUMN_WIDTHS = [17.5, 10, 13, 8, 11, 6, 9, 10, 3] as const;
+const FIREWALL_TABLE_MIN_WIDTH = `${FIREWALL_COLUMN_WIDTHS.reduce((sum, width) => sum + width, 0)}rem`;
+
 /** The firewalls being managed, grouped by subscription, with portal-style filters. */
 export function Firewalls({
   firewalls,
@@ -285,19 +288,34 @@ export function Firewalls({
           </div>
         </EmptyState>
       ) : (
-        <div className="min-h-0 flex-1 overflow-auto">
-          <table className="w-full min-w-[1400px] table-fixed text-left text-sm">
+        <div
+          className="min-h-0 flex-1 overflow-auto"
+          role="region"
+          aria-label="Firewalls table"
+          tabIndex={0}
+        >
+          <table
+            className="w-full table-fixed text-left text-sm"
+            style={{ minWidth: FIREWALL_TABLE_MIN_WIDTH }}
+          >
+            <colgroup>
+              {FIREWALL_COLUMN_WIDTHS.map((width, index) => (
+                <col key={index} style={{ width: `${width}rem` }} />
+              ))}
+            </colgroup>
             <thead className="sticky top-0 z-10 bg-ink-900 text-xs text-fg-muted">
               <tr className="border-b border-line">
-                <th className="py-2 pl-6 pr-3 font-medium">Name</th>
-                <th className="w-40 px-3 py-2 font-medium">State</th>
-                <th className="w-52 px-3 py-2 font-medium">Policy</th>
-                <th className="w-32 px-3 py-2 font-medium">Private IP</th>
-                <th className="w-44 px-3 py-2 font-medium">Resource group</th>
-                <th className="w-24 px-3 py-2 font-medium">Tier</th>
-                <th className="w-36 px-3 py-2 font-medium">Deployed in</th>
-                <th className="w-40 px-3 py-2 font-medium">Location</th>
-                <th className="w-12 py-2 pr-4" />
+                <th className="sticky left-0 z-20 bg-ink-900 py-2 pl-6 pr-3 font-medium">
+                  Name
+                </th>
+                <th className="px-3 py-2 font-medium">State</th>
+                <th className="px-3 py-2 font-medium">Policy</th>
+                <th className="px-3 py-2 font-medium">Private IP</th>
+                <th className="px-3 py-2 font-medium">Resource group</th>
+                <th className="px-3 py-2 font-medium">Tier</th>
+                <th className="px-3 py-2 font-medium">Deployed in</th>
+                <th className="px-3 py-2 font-medium">Location</th>
+                <th className="py-2 pr-4" />
               </tr>
             </thead>
             <tbody>
@@ -342,10 +360,10 @@ export function Firewalls({
                       list.map((f, i) => (
                         <tr
                           key={f.id}
-                          className="border-b border-line/60 hover:bg-ink-850"
+                          className="group border-b border-line/60 hover:bg-ink-850"
                         >
                           <td
-                            className="relative py-2 pr-3"
+                            className="sticky left-0 z-[1] bg-ink-900 py-2 pr-3 group-hover:bg-ink-850"
                             style={{ paddingLeft: treeIndent(1) }}
                           >
                             <TreeLines depth={1} last={i === list.length - 1} />

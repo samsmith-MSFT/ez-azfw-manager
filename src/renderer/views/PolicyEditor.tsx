@@ -132,6 +132,10 @@ const ACTION_COLOR: Record<string, string> = {
   DNAT: 'bg-dnat text-dnat',
 };
 
+const RULE_COLUMN_WIDTHS = [1.75, 12, 6, 14, 8, 14, 9, 3] as const;
+const RULE_TABLE_MIN_WIDTH = `${RULE_COLUMN_WIDTHS.reduce((sum, width) => sum + width, 0)}rem`;
+const RULE_NAME_LEFT = `${RULE_COLUMN_WIDTHS[0]}rem`;
+
 /** Rule action as a colored word with a short edge bar, instead of a pill. */
 function ActionMark({ action }: { action: string }) {
   const [bar, text] = (
@@ -1157,7 +1161,12 @@ export function PolicyEditor({
                 </div>
               )}
 
-              <div className="min-h-0 flex-1 overflow-auto">
+              <div
+                className="min-h-0 flex-1 overflow-auto"
+                role="region"
+                aria-label="Policy rules table"
+                tabIndex={0}
+              >
                 {!collections.length && !removed.collections.length ? (
                   <EmptyState
                     icon={<ListTree size={22} />}
@@ -1191,17 +1200,33 @@ export function PolicyEditor({
                     )}
                   </EmptyState>
                 ) : (
-                  <table className="w-full min-w-[1200px] table-fixed text-left text-sm">
+                  <table
+                    className="w-full table-fixed text-left text-sm"
+                    style={{ minWidth: RULE_TABLE_MIN_WIDTH }}
+                  >
+                    <colgroup>
+                      {RULE_COLUMN_WIDTHS.map((width, index) => (
+                        <col key={index} style={{ width: `${width}rem` }} />
+                      ))}
+                    </colgroup>
                     <thead className="sticky top-0 z-10 bg-ink-900 text-xs text-fg-muted">
                       <tr className="border-b border-line">
-                        <th className="w-7" aria-label="Change" />
-                        <th className="w-48 px-3 py-2 font-medium">Name</th>
-                        <th className="w-24 px-3 py-2 font-medium">Type</th>
+                        <th
+                          className="sticky left-0 z-20 bg-ink-900"
+                          aria-label="Change"
+                        />
+                        <th
+                          className="sticky z-20 bg-ink-900 px-3 py-2 font-medium"
+                          style={{ left: RULE_NAME_LEFT }}
+                        >
+                          Name
+                        </th>
+                        <th className="px-3 py-2 font-medium">Type</th>
                         <th className="px-3 py-2 font-medium">Source</th>
-                        <th className="w-32 px-3 py-2 font-medium">Service</th>
+                        <th className="px-3 py-2 font-medium">Service</th>
                         <th className="px-3 py-2 font-medium">Destination</th>
-                        <th className="w-36 px-3 py-2 font-medium">Action</th>
-                        <th className="w-12 pr-4" />
+                        <th className="px-3 py-2 font-medium">Action</th>
+                        <th className="pr-4" />
                       </tr>
                     </thead>
                     <tbody>
@@ -1219,7 +1244,7 @@ export function PolicyEditor({
                         return (
                           <Fragment key={c.name}>
                             <tr className="border-b border-line bg-ink-850">
-                              <td className="text-center font-mono text-base font-bold text-candidate">
+                              <td className="sticky left-0 z-[1] bg-ink-850 text-center font-mono text-base font-bold text-candidate">
                                 <DiffMark
                                   kind={
                                     colMark ??
@@ -1320,7 +1345,7 @@ export function PolicyEditor({
                               return (
                                 <tr
                                   key={r.name}
-                                  className={`border-b border-line/60 align-top ${readOnly ? '' : 'cursor-pointer'} ${mark ? 'bg-candidate/[0.06]' : 'hover:bg-ink-850'}`}
+                                  className={`group border-b border-line/60 align-top ${readOnly ? '' : 'cursor-pointer'} ${mark ? 'bg-candidate/[0.06]' : 'hover:bg-ink-850'}`}
                                   title={readOnly ? undefined : 'Click to edit'}
                                   onClick={() =>
                                     !readOnly &&
@@ -1331,10 +1356,13 @@ export function PolicyEditor({
                                     })
                                   }
                                 >
-                                  <td className="py-2 text-center font-mono text-base font-bold leading-[18px] text-candidate">
+                                  <td className="sticky left-0 z-[1] bg-ink-900 py-2 text-center font-mono text-base font-bold leading-[18px] text-candidate group-hover:bg-ink-850">
                                     <DiffMark kind={mark} />
                                   </td>
-                                  <td className="relative py-2 pl-[30px] pr-3">
+                                  <td
+                                    className="sticky z-[1] bg-ink-900 py-2 pl-[30px] pr-3 group-hover:bg-ink-850"
+                                    style={{ left: RULE_NAME_LEFT }}
+                                  >
                                     <TreeLines
                                       depth={1}
                                       last={lastRule}
@@ -1460,12 +1488,15 @@ export function PolicyEditor({
                             {removedHere.map(({ rule, index }, ri) => (
                               <tr
                                 key={`removed:${rule.name}`}
-                                className="border-b border-line/60 bg-deny/[0.05] align-top text-fg-faint"
+                                className="group border-b border-line/60 bg-deny/[0.05] align-top text-fg-faint"
                               >
-                                <td className="py-2 text-center font-mono text-base font-bold leading-[18px] text-deny">
+                                <td className="sticky left-0 z-[1] bg-ink-900 py-2 text-center font-mono text-base font-bold leading-[18px] text-deny">
                                   <DiffMark kind="removed" />
                                 </td>
-                                <td className="relative py-2 pl-[30px] pr-3">
+                                <td
+                                  className="sticky z-[1] bg-ink-900 py-2 pl-[30px] pr-3"
+                                  style={{ left: RULE_NAME_LEFT }}
+                                >
                                   <TreeLines
                                     depth={1}
                                     last={ri === removedHere.length - 1}
@@ -1535,7 +1566,7 @@ export function PolicyEditor({
                           key={`removed-collection:${c.name}`}
                           className="border-b border-line bg-deny/[0.05] text-fg-faint"
                         >
-                          <td className="text-center font-mono text-base font-bold text-deny">
+                          <td className="sticky left-0 z-[1] bg-ink-900 text-center font-mono text-base font-bold text-deny">
                             <DiffMark kind="removed" />
                           </td>
                           <td colSpan={6} className="py-2 pr-3">

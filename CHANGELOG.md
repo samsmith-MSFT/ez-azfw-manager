@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Firewall, policy, rule, and log tables now retain readable column minimums, keep the Name column visible during horizontal scrolling, and expose keyboard-focusable scroll regions. Log details dock only when the grid keeps at least 560px; otherwise they open as a focus-managed overlay without squeezing the visible columns.
 - When no firewalls are found, the firewall picker links to Microsoft Learn guides for deploying your first Basic, Standard, or Premium firewall instead of pointing to a page you can't open yet.
 
 ## [1.6.2] - 2026-11-19

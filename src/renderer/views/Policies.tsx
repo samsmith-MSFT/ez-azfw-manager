@@ -93,6 +93,9 @@ function PolicyModeButtons({
   );
 }
 
+const POLICY_COLUMN_WIDTHS = [13, 16, 6, 10, 11, 10, 3] as const;
+const POLICY_TABLE_MIN_WIDTH = `${POLICY_COLUMN_WIDTHS.reduce((sum, width) => sum + width, 0)}rem`;
+
 interface Row {
   id: string;
   name: string;
@@ -292,9 +295,9 @@ export function Policies({
       (change) => change.committing && sameResourceId(change.policyId, r.id),
     );
     return (
-      <tr key={r.id} className="border-b border-line/60 hover:bg-ink-850">
+      <tr key={r.id} className="group border-b border-line/60 hover:bg-ink-850">
         <td
-          className="relative py-2 pr-3"
+          className="sticky left-0 z-[1] bg-ink-900 py-2 pr-3 group-hover:bg-ink-850"
           style={{ paddingLeft: treeIndent(depth) }}
         >
           <TreeLines
@@ -471,22 +474,37 @@ export function Policies({
           to show on the Firewalls page.
         </EmptyState>
       ) : (
-        <div className="min-h-0 flex-1 overflow-auto">
-          <table className="w-full min-w-[1100px] table-fixed text-left text-sm">
+        <div
+          className="min-h-0 flex-1 overflow-auto"
+          role="region"
+          aria-label="Policies table"
+          tabIndex={0}
+        >
+          <table
+            className="w-full table-fixed text-left text-sm"
+            style={{ minWidth: POLICY_TABLE_MIN_WIDTH }}
+          >
+            <colgroup>
+              {POLICY_COLUMN_WIDTHS.map((width, index) => (
+                <col key={index} style={{ width: `${width}rem` }} />
+              ))}
+            </colgroup>
             <thead className="sticky top-0 z-10 bg-ink-900 text-xs text-fg-muted">
               <tr className="border-b border-line">
-                <th className="py-2 pl-6 pr-3 font-medium">Name</th>
-                <th className="w-64 px-3 py-2 font-medium">Applied to</th>
-                <th className="w-24 px-3 py-2 font-medium">Tier</th>
-                <th className="w-40 px-3 py-2 font-medium">Region</th>
-                <th className="w-44 px-3 py-2 font-medium">Threat intel</th>
+                <th className="sticky left-0 z-20 bg-ink-900 py-2 pl-6 pr-3 font-medium">
+                  Name
+                </th>
+                <th className="px-3 py-2 font-medium">Applied to</th>
+                <th className="px-3 py-2 font-medium">Tier</th>
+                <th className="px-3 py-2 font-medium">Region</th>
+                <th className="px-3 py-2 font-medium">Threat intel</th>
                 <th
-                  className="w-40 px-3 py-2 text-right font-medium"
+                  className="px-3 py-2 text-right font-medium"
                   title="Own rule collection groups / collections / rules (inherited rules not counted)"
                 >
                   Groups / colls / rules
                 </th>
-                <th className="w-12 py-2 pr-4" />
+                <th className="py-2 pr-4" />
               </tr>
             </thead>
             <tbody>

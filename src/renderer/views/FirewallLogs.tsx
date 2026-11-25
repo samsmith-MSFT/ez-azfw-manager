@@ -24,6 +24,8 @@ import { SelectMenu } from '../components/Dropdown';
 import { Modal } from '../components/Modal';
 import { errorMessage, useToast } from '../components/Toast';
 import { useLogStream } from '../logStream';
+import { canDockLogDetails } from '../logLayout';
+import { useTier } from '../tier';
 import { LogConnectionForm } from './LogConnectionForm';
 import type { FirewallLogRow } from '../../shared/fwLogs';
 import { parseAddress } from '../../shared/ipAddress';
@@ -47,7 +49,19 @@ import { LOG_RECEIVER_ROLE, type LogStreamState } from '../../shared/logStream';
 const ROW_HEIGHT = 28;
 const OVERSCAN = 12;
 const COLUMNS =
-  'grid-cols-[92px_104px_64px_minmax(0,1fr)_minmax(0,1.2fr)_56px_88px_minmax(0,1.6fr)]';
+  'grid-cols-[7rem_minmax(11rem,1fr)_minmax(11rem,1fr)_5.5rem_minmax(10rem,1.6fr)] narrow:grid-cols-[7rem_6.5rem_minmax(11rem,1fr)_minmax(11rem,1fr)_5.5rem_minmax(10rem,1.6fr)] lg:grid-cols-[7rem_6.5rem_4rem_minmax(11rem,1fr)_minmax(11rem,1fr)_4rem_5.5rem_minmax(10rem,1.6fr)]';
+const GRID_MIN_WIDTH =
+  'min-w-[50rem] narrow:min-w-[57.25rem] lg:min-w-[66.75rem]';
+const LOG_COLUMN_CLASSES = [
+  '',
+  'hidden narrow:block',
+  'hidden lg:block',
+  '',
+  '',
+  'hidden lg:block',
+  '',
+  '',
+] as const;
 
 const STATE_LABEL: Record<LogStreamState, string> = {
   idle: 'Not connected',
@@ -110,6 +124,7 @@ export function FirewallLogs({
 }) {
   const stream = useLogStream();
   const toast = useToast();
+  const tier = useTier();
   const { status, config, buffer, paused } = stream;
   const running = RUNNING.includes(status.state);
   const [editing, setEditing] = useState(false);
@@ -118,6 +133,34 @@ export function FirewallLogs({
   const [selected, setSelected] = useState<FirewallLogRow>();
   const [granting, setGranting] = useState(false);
   const [grantBusy, setGrantBusy] = useState(false);
+  const logArea = useRef<HTMLDivElement>(null);
+  const [logAreaWidth, setLogAreaWidth] = useState(0);
+
+  useLayoutEffect(() => {
+    const element = logArea.current;
+    if (!element) {
+      setLogAreaWidth(0);
+      return;
+    }
+    const update = () => setLogAreaWidth(element.getBoundingClientRect().width);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [config, showForm]);
+
+  const detailsDocked = canDockLogDetails(tier, logAreaWidth);
+  const closeDetails = () => {
+    const id = selected?.id;
+    setSelected(undefined);
+    // Closing the panel hands focus back to the row it described.
+    if (id)
+      window.setTimeout(
+        () =>
+          document.querySelector<HTMLElement>(`[data-row-id="${id}"]`)?.focus(),
+        0,
+      );
+  };
 
   const visible = useMemo(
     () => filterRows(buffer.rows, filters),
@@ -289,7 +332,7 @@ export function FirewallLogs({
               </Badge>
             )}
           </div>
-          <div className="flex min-h-0 flex-1">
+          <div ref={logArea} className="relative flex min-h-0 flex-1">
             <LogTable
               rows={visible}
               hasRows={buffer.rows.length > 0}
@@ -297,25 +340,23 @@ export function FirewallLogs({
               selectedId={selected?.id}
               onSelect={setSelected}
             />
+            {selected && !detailsDocked && (
+              <button
+                type="button"
+                tabIndex={-1}
+                aria-label="Close log row details"
+                className="absolute inset-0 z-20 bg-ink-950/60"
+                onClick={closeDetails}
+              />
+            )}
             {selected && (
               <DetailPanel
                 row={selected}
+                overlay={!detailsDocked}
                 managedFirewalls={managedFirewalls}
                 onOpenRule={onOpenRule}
                 onCreateRule={onCreateRule}
-                onClose={() => {
-                  const id = selected?.id;
-                  setSelected(undefined);
-                  // Closing the panel hands focus back to the row it described.
-                  if (id)
-                    window.setTimeout(
-                      () =>
-                        document
-                          .querySelector<HTMLElement>(`[data-row-id="${id}"]`)
-                          ?.focus(),
-                      0,
-                    );
-                }}
+                onClose={closeDetails}
               />
             )}
           </div>
@@ -586,60 +627,78 @@ function LogTable({
       aria-rowcount={rows.length}
     >
       <div
-        role="row"
-        className={`grid ${COLUMNS} gap-x-3 border-b border-line bg-ink-900 py-2 pl-6 pr-4 text-xs font-medium text-fg-muted`}
+        className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden"
+        role="region"
+        aria-label="Firewall logs table"
+        tabIndex={0}
       >
-        {[
-          'Time',
-          'Category',
-          'Proto',
-          'Source',
-          'Destination',
-          'Port',
-          'Action',
-          'Rule info',
-        ].map((h) => (
-          <span key={h} role="columnheader">
-            {h}
-          </span>
-        ))}
-      </div>
-      <div
-        ref={scroller}
-        className="min-h-0 flex-1 overflow-y-auto"
-        onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
-      >
-        {rows.length === 0 ? (
-          <EmptyState
-            icon={<ScrollText size={22} />}
-            title={hasRows ? 'No rows match the filters' : 'No log rows yet'}
-          >
-            {hasRows
-              ? 'Change or clear the filters to see more.'
-              : state === 'connected'
-                ? 'Waiting for events. Rows appear as the firewall logs traffic; new diagnostic settings can take 10–15 minutes to deliver the first events.'
-                : state === 'idle' || state === 'stopped'
-                  ? 'Connect to start reading.'
-                  : 'Connecting to the Event Hub…'}
-          </EmptyState>
-        ) : (
+        <div className={`flex h-full ${GRID_MIN_WIDTH} flex-col`}>
           <div
-            role="rowgroup"
-            style={{ height: rows.length * ROW_HEIGHT, position: 'relative' }}
+            role="row"
+            className={`grid shrink-0 ${COLUMNS} gap-x-3 border-b border-line bg-ink-900 py-2 pl-6 pr-4 text-xs font-medium text-fg-muted`}
           >
-            {rows.slice(start, end).map((row, i) => (
-              <LogRow
-                key={row.id}
-                row={row}
-                index={start + i}
-                selected={row.id === selectedId}
-                tabStop={row.id === tabStop}
-                onSelect={onSelect}
-                onKey={onRowKey}
-              />
+            {[
+              'Time',
+              'Category',
+              'Proto',
+              'Source',
+              'Destination',
+              'Port',
+              'Action',
+              'Rule info',
+            ].map((heading, index) => (
+              <span
+                key={heading}
+                role="columnheader"
+                className={LOG_COLUMN_CLASSES[index]}
+              >
+                {heading}
+              </span>
             ))}
           </div>
-        )}
+          <div
+            ref={scroller}
+            className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto"
+            onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
+          >
+            {rows.length === 0 ? (
+              <EmptyState
+                icon={<ScrollText size={22} />}
+                title={
+                  hasRows ? 'No rows match the filters' : 'No log rows yet'
+                }
+              >
+                {hasRows
+                  ? 'Change or clear the filters to see more.'
+                  : state === 'connected'
+                    ? 'Waiting for events. Rows appear as the firewall logs traffic; new diagnostic settings can take 10–15 minutes to deliver the first events.'
+                    : state === 'idle' || state === 'stopped'
+                      ? 'Connect to start reading.'
+                      : 'Connecting to the Event Hub…'}
+              </EmptyState>
+            ) : (
+              <div
+                role="rowgroup"
+                style={{
+                  height: rows.length * ROW_HEIGHT,
+                  position: 'relative',
+                }}
+              >
+                {rows.slice(start, end).map((row, i) => (
+                  <LogRow
+                    key={row.id}
+                    row={row}
+                    index={start + i}
+                    selected={row.id === selectedId}
+                    tabStop={row.id === tabStop}
+                    onSelect={onSelect}
+                    onKey={onRowKey}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -685,14 +744,14 @@ function LogRow({
       <span role="gridcell" className="netval truncate text-fg-muted">
         {localTime(row.time)}
       </span>
-      <span role="gridcell">
+      <span role="gridcell" className={LOG_COLUMN_CLASSES[1]}>
         <Badge tone={CATEGORY_TONE[row.category] ?? 'neutral'}>
           {row.category}
         </Badge>
       </span>
       <span
         role="gridcell"
-        className="truncate text-fg-muted"
+        className={`truncate text-fg-muted ${LOG_COLUMN_CLASSES[2]}`}
         title={row.protocol}
       >
         {row.protocol}
@@ -707,7 +766,10 @@ function LogRow({
       <span role="gridcell" className="netval truncate" title={row.targetIp}>
         {row.targetIp}
       </span>
-      <span role="gridcell" className="netval truncate">
+      <span
+        role="gridcell"
+        className={`netval truncate ${LOG_COLUMN_CLASSES[5]}`}
+      >
         {row.targetPort}
       </span>
       <span
@@ -730,17 +792,26 @@ function LogRow({
 
 function DetailPanel({
   row,
+  overlay,
   managedFirewalls,
   onOpenRule,
   onCreateRule,
   onClose,
 }: {
   row: FirewallLogRow;
+  overlay: boolean;
   managedFirewalls: OwnerFirewall[];
   onOpenRule: (ref: LogRuleRef) => void;
   onCreateRule: (suggestion: RuleSuggestion, firewallPolicyId: string) => void;
   onClose: () => void;
 }) {
+  const panel = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!overlay) return;
+    const frame = requestAnimationFrame(() => panel.current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [overlay, row.id]);
+
   const owner = resolveRowOwner(row, managedFirewalls);
   const ruleRef = logRuleRef(row, owner.policyId);
   const suggested =
@@ -775,16 +846,43 @@ function DetailPanel({
           : 'No, not one of your managed firewalls',
     ],
   ];
+  const onPanelKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      event.stopPropagation();
+      onClose();
+      return;
+    }
+    if (!overlay || event.key !== 'Tab' || !panel.current) return;
+    const items = [
+      ...panel.current.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    ].filter((item) => !item.hidden && item.offsetParent !== null);
+    if (!items.length) return;
+    const first = items[0];
+    const last = items.at(-1)!;
+    if (
+      event.shiftKey &&
+      (document.activeElement === first ||
+        document.activeElement === panel.current)
+    ) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
   return (
     <aside
+      ref={panel}
+      role={overlay ? 'dialog' : undefined}
+      aria-modal={overlay ? true : undefined}
       aria-label="Log row details"
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') {
-          e.stopPropagation();
-          onClose();
-        }
-      }}
-      className="w-80 shrink-0 overflow-y-auto border-l border-line bg-ink-900 p-4"
+      tabIndex={overlay ? -1 : undefined}
+      onKeyDown={onPanelKeyDown}
+      className={`w-80 max-w-full overflow-y-auto border-l border-line bg-ink-900 p-4 ${overlay ? 'absolute inset-y-0 right-0 z-30 shadow-[-12px_0_30px_rgba(4,10,20,0.45)] focus:outline-none' : 'shrink-0'}`}
     >
       <div className="mb-3 flex items-center">
         <h2 className="flex-1 text-sm font-semibold">Details</h2>
