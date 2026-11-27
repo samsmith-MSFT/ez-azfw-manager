@@ -11,7 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - The main window now restores its normal size and position safely across display changes, and remembers manual zoom from the new **View** menu. Zoom shortcuts support 75–300%, stay aligned with the native title-bar controls, and no longer depend on the packaged Chromium menu.
 - The shell now reflows by CSS viewport tier: the title, page headers, draft tray and dialogs wrap at narrow widths, while navigation and Rules sidebars collapse to temporary overlays without overwriting saved preferences.
 - The Account menu now includes discoverable zoom controls and announces zoom changes. Muted and action text meets AA contrast, and the remaining small text and icon targets have been enlarged.
-- 
+
 ### Changed
 
 - Updated Electron from 45.3.3 to 45.4.1 for upstream Chromium and Node.js security and memory-safety fixes. No change to features or behaviour.
