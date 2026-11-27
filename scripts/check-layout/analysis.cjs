@@ -348,6 +348,79 @@ function analyzeLayout() {
     }
   }
 
+  const largeDisplayMaximumGap = 400;
+  const largeDisplayMeasurements = [];
+  const largeDisplayChecked = win.innerWidth >= 1920;
+  if (largeDisplayChecked) {
+    // Table identity columns are a conservative proxy for the gap from a Name to its
+    // neighbouring data. The ultrawide allocation caps them at 24rem (384px).
+    for (const table of scope.querySelectorAll('table')) {
+      const headers = [...table.querySelectorAll('thead th')];
+      const nameIndex = headers.findIndex(
+        (header) => compact(header.textContent ?? '') === 'Name',
+      );
+      if (nameIndex < 0) continue;
+      const header = headers[nameIndex];
+      const region = table.closest('[role="region"][aria-label]');
+      const label = region?.getAttribute('aria-label') ?? selectorOf(table);
+      if (
+        !['Firewalls table', 'Policies table', 'Policy rules table'].includes(
+          label,
+        )
+      )
+        continue;
+      const gap = header.getBoundingClientRect().width;
+      largeDisplayMeasurements.push({
+        kind: 'identity-column',
+        label: `${label}: Name`,
+        selector: selectorOf(header),
+        gap: rounded(gap),
+        maximum: largeDisplayMaximumGap,
+      });
+    }
+
+    // Logs do not have a Name column. Measure the actual white space from the end
+    // of Source/Destination text to the next column; this catches the thousands of
+    // empty pixels that a flexible grid otherwise introduces on a 32:9 panel.
+    if (logGrid) {
+      const header = logGrid.querySelector('[role="row"]');
+      const labels = [
+        ...(header?.querySelectorAll('[role="columnheader"]') ?? []),
+      ].map((cell) => compact(cell.textContent ?? ''));
+      const rows = [...logGrid.querySelectorAll('[data-row-id]')].slice(0, 5);
+      for (const [rowIndex, row] of rows.entries()) {
+        const cells = [...row.querySelectorAll('[role="gridcell"]')];
+        for (const sourceName of ['Source', 'Destination']) {
+          const sourceIndex = labels.indexOf(sourceName);
+          const source = cells[sourceIndex];
+          const next = cells[sourceIndex + 1];
+          if (!source || !next) continue;
+          const runs = textRuns.filter(
+            (run) => source === run.element || source.contains(run.element),
+          );
+          const right = Math.max(
+            ...runs.flatMap((run) => run.rects.map((rect) => rect.right)),
+          );
+          if (!Number.isFinite(right)) continue;
+          const sourceRect = source.getBoundingClientRect();
+          const nextRect = next.getBoundingClientRect();
+          const visibleTextRight = Math.min(right, sourceRect.right);
+          const gap = Math.max(0, nextRect.left - visibleTextRight);
+          largeDisplayMeasurements.push({
+            kind: 'text-to-next-column',
+            label: `Firewall logs row ${rowIndex + 1}: ${sourceName} to ${labels[sourceIndex + 1]}`,
+            selector: selectorOf(source),
+            gap: rounded(gap),
+            maximum: largeDisplayMaximumGap,
+          });
+        }
+      }
+    }
+  }
+  const largeDisplayGaps = largeDisplayMeasurements.filter(
+    (item) => item.gap > item.maximum,
+  );
+
   const smallText = [];
   for (const run of textRuns) {
     if (run.fontSize + 0.01 < 12) {
@@ -521,6 +594,12 @@ function analyzeLayout() {
       fixedDataCells,
       (item) => `${item.name}|${item.text}|${item.width}|${item.scrollWidth}`,
     ),
+    largeDisplay: {
+      checked: largeDisplayChecked,
+      maximumGap: largeDisplayMaximumGap,
+      measurements: largeDisplayMeasurements,
+      gaps: resultList(largeDisplayGaps),
+    },
     smallText: resultList(uniqueSmallText),
     smallTargets: resultList(uniqueTargets),
     exemptInlineTargets: resultList(uniqueExemptTargets),

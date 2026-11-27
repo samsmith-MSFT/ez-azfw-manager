@@ -17,6 +17,7 @@ import {
   Badge,
   EmptyState,
   Notice,
+  PageFrame,
   PageHeader,
   Spinner,
 } from '../components/ui';
@@ -192,7 +193,7 @@ export function FirewallLogs({
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-y-auto">
+    <PageFrame variant="logs">
       <PageHeader
         title={
           <div className="flex flex-wrap items-center gap-2.5">
@@ -423,7 +424,7 @@ export function FirewallLogs({
           </div>
         </Modal>
       )}
-    </div>
+    </PageFrame>
   );
 }
 

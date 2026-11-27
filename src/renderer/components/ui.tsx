@@ -1,5 +1,56 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
+
+/**
+ * Keeps a data view readable on large displays without centring it away from the navigation.
+ * The wider logs variant leaves room for the docked details panel and the useful live-grid columns.
+ */
+export function PageFrame({
+  as: Component = 'div',
+  children,
+  className = '',
+  variant = 'standard',
+}: {
+  as?: 'div' | 'section';
+  children: ReactNode;
+  className?: string;
+  variant?: 'standard' | 'logs';
+}) {
+  return (
+    <Component
+      data-page-frame={variant}
+      className={`flex h-full min-h-0 w-full min-w-0 flex-col overflow-y-auto ${variant === 'logs' ? 'max-w-[140rem]' : 'max-w-[120rem]'} ${className}`}
+    >
+      {children}
+    </Component>
+  );
+}
+
+/** Responsive <col> widths: minimum at normal sizes, balanced allocation in the ultrawide frame. */
+export function TableColumns({
+  widths,
+  ultrawideWidths = widths,
+}: {
+  widths: readonly number[];
+  ultrawideWidths?: readonly number[];
+}) {
+  return (
+    <colgroup>
+      {widths.map((width, index) => (
+        <col
+          key={index}
+          className="w-[var(--column-width)] ultra:w-[var(--ultrawide-column-width)]"
+          style={
+            {
+              '--column-width': `${width}rem`,
+              '--ultrawide-column-width': `${ultrawideWidths[index] ?? width}rem`,
+            } as CSSProperties
+          }
+        />
+      ))}
+    </colgroup>
+  );
+}
 
 export function PageHeader({
   title,

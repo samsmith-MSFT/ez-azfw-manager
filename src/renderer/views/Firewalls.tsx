@@ -26,7 +26,13 @@ import {
   useStoredFilters,
   type FilterValues,
 } from '../filters';
-import { EmptyState, PageHeader, StatusDot } from '../components/ui';
+import {
+  EmptyState,
+  PageFrame,
+  PageHeader,
+  StatusDot,
+  TableColumns,
+} from '../components/ui';
 import { resourceName } from '../../shared/resourceId';
 import type { CandidateStatus, FirewallSummary } from '../../shared/types';
 import {
@@ -194,6 +200,10 @@ const FIREWALL_FILTERS: FilterValues<FirewallSummary> = {
 };
 
 const FIREWALL_COLUMN_WIDTHS = [17.5, 10, 13, 8, 11, 6, 9, 10, 3] as const;
+/** 120rem in total, with Name capped at 24rem and the spare width given to context columns. */
+const FIREWALL_ULTRAWIDE_COLUMN_WIDTHS = [
+  24, 12, 20, 10, 18, 7, 12, 14, 3,
+] as const;
 const FIREWALL_TABLE_MIN_WIDTH = `${FIREWALL_COLUMN_WIDTHS.reduce((sum, width) => sum + width, 0)}rem`;
 
 /** The firewalls being managed, grouped by subscription, with portal-style filters. */
@@ -249,7 +259,7 @@ export function Firewalls({
   }, [shown]);
   const subscriptions = new Set(firewalls.map((f) => f.subscriptionId)).size;
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-y-auto">
+    <PageFrame>
       <PageHeader
         title={<h1 className="text-xl font-semibold">Firewalls</h1>}
         subtitle={
@@ -298,11 +308,10 @@ export function Firewalls({
             className="w-full table-fixed text-left text-sm"
             style={{ minWidth: FIREWALL_TABLE_MIN_WIDTH }}
           >
-            <colgroup>
-              {FIREWALL_COLUMN_WIDTHS.map((width, index) => (
-                <col key={index} style={{ width: `${width}rem` }} />
-              ))}
-            </colgroup>
+            <TableColumns
+              widths={FIREWALL_COLUMN_WIDTHS}
+              ultrawideWidths={FIREWALL_ULTRAWIDE_COLUMN_WIDTHS}
+            />
             <thead className="sticky top-0 z-10 bg-ink-900 text-xs text-fg-muted">
               <tr className="border-b border-line">
                 <th className="sticky left-0 z-20 bg-ink-900 py-2 pl-6 pr-3 font-medium">
@@ -490,6 +499,6 @@ export function Firewalls({
           onClose={() => setSettings(undefined)}
         />
       )}
-    </div>
+    </PageFrame>
   );
 }

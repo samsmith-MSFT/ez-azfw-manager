@@ -37,7 +37,9 @@ import { ConfirmModal } from '../components/Modal';
 import {
   EmptyState,
   Badge,
+  PageFrame,
   PageHeader,
+  TableColumns,
   Truncate,
   ValueList,
 } from '../components/ui';
@@ -133,6 +135,10 @@ const ACTION_COLOR: Record<string, string> = {
 };
 
 const RULE_COLUMN_WIDTHS = [1.75, 12, 6, 14, 8, 14, 9, 3] as const;
+/** 120rem in total, with Name capped at 24rem and the spare width given to traffic columns. */
+const RULE_ULTRAWIDE_COLUMN_WIDTHS = [
+  1.75, 24, 7, 27, 12, 31, 14.25, 3,
+] as const;
 const RULE_TABLE_MIN_WIDTH = `${RULE_COLUMN_WIDTHS.reduce((sum, width) => sum + width, 0)}rem`;
 const RULE_NAME_LEFT = `${RULE_COLUMN_WIDTHS[0]}rem`;
 
@@ -973,7 +979,7 @@ export function PolicyEditor({
           </div>
         </aside>
 
-        <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
+        <PageFrame as="section" className="flex-1">
           {loading && !view ? (
             <div className="flex flex-1 items-center justify-center">
               <QuipSpinner topic="policy" />
@@ -1204,11 +1210,10 @@ export function PolicyEditor({
                     className="w-full table-fixed text-left text-sm"
                     style={{ minWidth: RULE_TABLE_MIN_WIDTH }}
                   >
-                    <colgroup>
-                      {RULE_COLUMN_WIDTHS.map((width, index) => (
-                        <col key={index} style={{ width: `${width}rem` }} />
-                      ))}
-                    </colgroup>
+                    <TableColumns
+                      widths={RULE_COLUMN_WIDTHS}
+                      ultrawideWidths={RULE_ULTRAWIDE_COLUMN_WIDTHS}
+                    />
                     <thead className="sticky top-0 z-10 bg-ink-900 text-xs text-fg-muted">
                       <tr className="border-b border-line">
                         <th
@@ -1596,7 +1601,7 @@ export function PolicyEditor({
               </div>
             </>
           )}
-        </section>
+        </PageFrame>
 
         {modal?.kind === 'collection' && current && (
           <CollectionEditor

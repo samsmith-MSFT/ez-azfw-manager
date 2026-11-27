@@ -109,6 +109,7 @@ function findingCounts(findings) {
     overflowElements:
       findings.overflow.horizontal.count + findings.overflow.vertical.count,
     fixedCells: fixedProblems,
+    largeDisplayGaps: findings.largeDisplay.gaps.count,
     smallText: findings.smallText.count,
     smallTargets: findings.smallTargets.count,
     contrast: findings.contrast.count,
@@ -125,6 +126,7 @@ function assertionCount(counts, zoomMismatch) {
     counts.pageOverflow +
     counts.overflowElements +
     counts.fixedCells +
+    counts.largeDisplayGaps +
     counts.smallText +
     counts.smallTargets +
     counts.contrast +
@@ -144,7 +146,7 @@ function aggregateScenario(results) {
 function printScenario(scenario, results) {
   const totals = aggregateScenario(results);
   console.log(
-    `[layout] ${scenario.id.padEnd(20)} ${String(results.length).padStart(2)} runs | overlap ${totals.overlaps ?? 0}, clip ${totals.clippings ?? 0}/${totals.truncations ?? 0}, overflow ${totals.pageOverflow ?? 0}+${totals.overflowElements ?? 0}, fixed ${totals.fixedCells ?? 0}, text ${totals.smallText ?? 0}, targets ${totals.smallTargets ?? 0}, contrast ${totals.contrast ?? 0}`,
+    `[layout] ${scenario.id.padEnd(20)} ${String(results.length).padStart(2)} runs | overlap ${totals.overlaps ?? 0}, clip ${totals.clippings ?? 0}/${totals.truncations ?? 0}, overflow ${totals.pageOverflow ?? 0}+${totals.overflowElements ?? 0}, fixed ${totals.fixedCells ?? 0}, large gaps ${totals.largeDisplayGaps ?? 0}, text ${totals.smallText ?? 0}, targets ${totals.smallTargets ?? 0}, contrast ${totals.contrast ?? 0}`,
   );
 }
 

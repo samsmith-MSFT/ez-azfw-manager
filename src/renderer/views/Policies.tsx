@@ -16,7 +16,13 @@ import {
 import { EllipsisMenu } from '../components/Dropdown';
 import { Segmented } from '../components/Segmented';
 import { useResourceMenuItems } from '../components/resourceMenu';
-import { EmptyState, PageHeader, Spinner } from '../components/ui';
+import {
+  EmptyState,
+  PageFrame,
+  PageHeader,
+  Spinner,
+  TableColumns,
+} from '../components/ui';
 import { parseResourceId, sameResourceId } from '../../shared/resourceId';
 import { FilterBar } from '../components/FilterBar';
 import { TreeLines, treeIndent } from '../components/TreeLines';
@@ -94,6 +100,8 @@ function PolicyModeButtons({
 }
 
 const POLICY_COLUMN_WIDTHS = [13, 16, 6, 10, 11, 10, 3] as const;
+/** 120rem in total, with Name capped at 24rem and the spare width given to context columns. */
+const POLICY_ULTRAWIDE_COLUMN_WIDTHS = [24, 28, 8, 16, 18, 22, 4] as const;
 const POLICY_TABLE_MIN_WIDTH = `${POLICY_COLUMN_WIDTHS.reduce((sum, width) => sum + width, 0)}rem`;
 
 interface Row {
@@ -439,7 +447,7 @@ export function Policies({
   const parentCount = rows.length - managedCount;
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-y-auto">
+    <PageFrame>
       <PageHeader
         title={<h1 className="text-xl font-semibold">Policies</h1>}
         subtitle={
@@ -484,11 +492,10 @@ export function Policies({
             className="w-full table-fixed text-left text-sm"
             style={{ minWidth: POLICY_TABLE_MIN_WIDTH }}
           >
-            <colgroup>
-              {POLICY_COLUMN_WIDTHS.map((width, index) => (
-                <col key={index} style={{ width: `${width}rem` }} />
-              ))}
-            </colgroup>
+            <TableColumns
+              widths={POLICY_COLUMN_WIDTHS}
+              ultrawideWidths={POLICY_ULTRAWIDE_COLUMN_WIDTHS}
+            />
             <thead className="sticky top-0 z-10 bg-ink-900 text-xs text-fg-muted">
               <tr className="border-b border-line">
                 <th className="sticky left-0 z-20 bg-ink-900 py-2 pl-6 pr-3 font-medium">
@@ -570,6 +577,6 @@ export function Policies({
           onClose={() => setSettingsId(undefined)}
         />
       )}
-    </div>
+    </PageFrame>
   );
 }

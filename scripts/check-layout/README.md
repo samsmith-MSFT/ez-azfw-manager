@@ -62,9 +62,15 @@ Windows and macOS graphical runners do not need Xvfb.
 
 ## What it checks
 
-The DOM analysis distinguishes meaningful text-box overlap from text that is ellipsized or clipped by `overflow:hidden`/`clip`; modal runs are scoped to the open dialog so the scrim and underlying application are ignored for overlap checks. It also reports page and element overflow, horizontal scroll regions, relevant log-grid fixed cells (including Time and Port), rendered text below 12 CSS px, interactive targets below 24×24 CSS px, and text contrast on computed backgrounds.
+The DOM analysis distinguishes meaningful text-box overlap from text that is ellipsized or clipped by `overflow:hidden`/`clip`; modal runs are scoped to the open dialog so the scrim and underlying application are ignored for overlap checks. It also reports page and element overflow, horizontal scroll regions, relevant log-grid fixed cells (including Time and Port), Finding 6's Name/source-to-next-column gaps on large viewports, rendered text below 12 CSS px, interactive targets below 24×24 CSS px, and text contrast on computed backgrounds.
 
 Expected ellipsis/truncation and intentional scroll regions are retained separately in the JSON. Assertion mode intentionally still fails on the current application; Phase 0 does not change styling to silence those findings.
+
+## Finding 6 hardware confirmation for the final PR
+
+The 3440×1440 and 5120×1440 Electron rows are exact **CSS content-size checks**, not confirmation on a physical 21:9/32:9 panel. The final PR must label automated coverage and real-hardware confirmation separately; do not claim the latter from a screenshot or virtual Electron window.
+
+Ask the maintainer with the 5120×1440 monitor to maximise the app, then scale it down through the 3440-wide and normal-window sizes. At each size, confirm on Firewalls, Policies, Rules, and Firewall logs that row data stays close to the row's name/source and that the left-aligned empty area is acceptable. Also repeat at 100% and 150% zoom where the matrix calls for it, and record the monitor/OS display scaling as well as the app zoom. The final PR should name who performed this physical check and whether the curved-screen result was confirmed.
 
 ## Known limitations
 
