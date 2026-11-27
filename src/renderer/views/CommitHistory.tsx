@@ -8,7 +8,13 @@ import {
   XCircle,
   AlertTriangle,
 } from 'lucide-react';
-import { Badge, EmptyState, Notice, Spinner } from '../components/ui';
+import {
+  Badge,
+  EmptyState,
+  Notice,
+  PageHeader,
+  Spinner,
+} from '../components/ui';
 import { ChangeList, ChangeSummary } from '../components/ChangeList';
 import { errorMessage } from '../components/Toast';
 import type {
@@ -92,19 +98,24 @@ export function CommitHistory({
   }
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="border-b border-line px-6 pb-4 pt-5">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <h1 className="text-xl font-semibold">Commit history</h1>
-          {storage && (
-            <span className="inline-flex items-center gap-1.5 rounded border border-line bg-ink-900 px-2.5 py-0.5 text-xs text-fg-muted">
-              <Database size={12} className="text-azure" />
-              <span className="font-mono text-fg">
-                {storage.storageAccountName}/
-                {storage.historyContainerName ?? DEFAULT_HISTORY_CONTAINER}
+    <div className="flex h-full min-h-0 flex-col overflow-y-auto">
+      <PageHeader
+        title={
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="text-xl font-semibold">Commit history</h1>
+            {storage && (
+              <span className="inline-flex items-center gap-1.5 rounded border border-line bg-ink-900 px-2.5 py-0.5 text-xs text-fg-muted">
+                <Database size={12} className="text-azure" />
+                <span className="break-all font-mono text-fg">
+                  {storage.storageAccountName}/
+                  {storage.historyContainerName ?? DEFAULT_HISTORY_CONTAINER}
+                </span>
               </span>
-            </span>
-          )}
+            )}
+          </div>
+        }
+        subtitle="Commits made by you and your teammates, saved in shared Azure Blob Storage, newest first."
+        actions={
           <button
             type="button"
             className="btn-ghost h-7 px-2 text-xs"
@@ -113,15 +124,11 @@ export function CommitHistory({
             <Settings2 size={13} />
             Change storage
           </button>
-        </div>
-        <p className="mt-1 text-sm text-fg-muted">
-          Commits made by you and your teammates, saved in shared Azure Blob
-          Storage, newest first.
-        </p>
-      </div>
+        }
+      />
       {problem}
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <table className="w-full table-fixed text-left text-sm">
+        <table className="w-full min-w-[1100px] table-fixed text-left text-sm">
           <thead className="sticky top-0 bg-ink-900 text-xs text-fg-muted">
             <tr className="border-b border-line">
               <th className="w-12 py-2 pl-6" />

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Search, RefreshCw, Flame } from 'lucide-react';
 import { EllipsisMenu, SelectMenu } from '../components/Dropdown';
 import { useResourceMenuItems } from '../components/resourceMenu';
-import { EmptyState, StatusDot, Truncate } from '../components/ui';
+import { EmptyState, PageHeader, StatusDot, Truncate } from '../components/ui';
 import { QuipSpinner } from '../components/QuipSpinner';
 import { errorMessage, useToast } from '../components/Toast';
 import { TIERS } from '../../shared/deploy';
@@ -86,51 +86,59 @@ export function FirewallPicker({
   const chosen = firewalls.filter(isSel).map((f) => f.id);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-end gap-3 border-b border-line px-6 pb-4 pt-5">
-        <div className="min-w-0 flex-1">
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+      <PageHeader
+        title={
           <h1 className="text-xl font-semibold">
             Choose which firewalls to show
           </h1>
-          <p className="mt-1 text-sm text-fg-muted">
-            {loading && !firewalls.length
-              ? 'Searching every subscription you can access.'
-              : error && !firewalls.length
-                ? "The search didn't finish."
-                : `${firewalls.length} ${firewalls.length === 1 ? 'firewall' : 'firewalls'} found in the subscriptions you can access. Ticked firewalls appear in EZ AzFW Manager; unticking one only hides it here. Nothing in Azure is changed or deleted.`}
-          </p>
-        </div>
-        {tenants.length > 1 && (
-          <SelectMenu
-            label="Directory"
-            widthClass="w-56"
-            value={tenantId}
-            onChange={onSwitchTenant}
-            options={tenants.map((t) => ({
-              value: t.tenantId,
-              label: t.displayName ?? t.defaultDomain ?? t.tenantId,
-              hint: t.displayName ? t.defaultDomain : undefined,
-            }))}
-          />
-        )}
-        <div className="relative w-64">
-          <Search
-            size={14}
-            className="absolute left-2.5 top-[9px] text-fg-faint"
-          />
-          <input
-            className="input pl-8"
-            aria-label="Filter firewalls"
-            placeholder="Filter by name, group, region, IP…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
-        <button className="btn-outline" onClick={onRefresh} disabled={loading}>
-          <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />{' '}
-          Refresh
-        </button>
-      </div>
+        }
+        subtitle={
+          loading && !firewalls.length
+            ? 'Searching every subscription you can access.'
+            : error && !firewalls.length
+              ? "The search didn't finish."
+              : `${firewalls.length} ${firewalls.length === 1 ? 'firewall' : 'firewalls'} found in the subscriptions you can access. Ticked firewalls appear in EZ AzFW Manager; unticking one only hides it here. Nothing in Azure is changed or deleted.`
+        }
+        actions={
+          <>
+            {tenants.length > 1 && (
+              <SelectMenu
+                label="Directory"
+                widthClass="w-56 max-w-full"
+                value={tenantId}
+                onChange={onSwitchTenant}
+                options={tenants.map((t) => ({
+                  value: t.tenantId,
+                  label: t.displayName ?? t.defaultDomain ?? t.tenantId,
+                  hint: t.displayName ? t.defaultDomain : undefined,
+                }))}
+              />
+            )}
+            <div className="relative w-64 max-w-full">
+              <Search
+                size={14}
+                className="absolute left-2.5 top-[9px] text-fg-faint"
+              />
+              <input
+                className="input pl-8"
+                aria-label="Filter firewalls"
+                placeholder="Filter by name, group, region, IP…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
+            <button
+              className="btn-outline"
+              onClick={onRefresh}
+              disabled={loading}
+            >
+              <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />{' '}
+              Refresh
+            </button>
+          </>
+        }
+      />
 
       <div className="min-h-0 flex-1 overflow-auto">
         {loading && !firewalls.length ? (
@@ -138,7 +146,7 @@ export function FirewallPicker({
             <QuipSpinner topic="discover" />
           </div>
         ) : error && !firewalls.length ? (
-          <div className="m-6 max-w-2xl border-l-2 border-deny bg-deny/10 p-4 text-sm">
+          <div className="m-6 max-w-2xl border-l-2 border-deny bg-deny-fill/10 p-4 text-sm">
             <p className="font-semibold">Couldn't search your subscriptions.</p>
             <p className="mt-1 whitespace-pre-line break-words text-fg-muted">
               {error}
@@ -223,7 +231,7 @@ export function FirewallPicker({
             </ul>
           </EmptyState>
         ) : (
-          <table className="w-full table-fixed text-left text-sm">
+          <table className="w-full min-w-[1100px] table-fixed text-left text-sm">
             <thead className="sticky top-0 z-10 bg-ink-900 text-xs text-fg-muted">
               <tr className="border-b border-line">
                 <th className="w-12 py-2 pl-6">

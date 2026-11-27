@@ -16,7 +16,13 @@ import {
 import { EllipsisMenu } from '../components/Dropdown';
 import { Segmented } from '../components/Segmented';
 import { useResourceMenuItems } from '../components/resourceMenu';
-import { EmptyState, Spinner } from '../components/ui';
+import {
+  EmptyState,
+  PageFrame,
+  PageHeader,
+  Spinner,
+  TableColumns,
+} from '../components/ui';
 import { parseResourceId, sameResourceId } from '../../shared/resourceId';
 import { FilterBar } from '../components/FilterBar';
 import { TreeLines, treeIndent } from '../components/TreeLines';
@@ -92,6 +98,11 @@ function PolicyModeButtons({
     </div>
   );
 }
+
+const POLICY_COLUMN_WIDTHS = [13, 16, 6, 10, 11, 10, 3] as const;
+/** 120rem in total, with Name capped at 24rem and the spare width given to context columns. */
+const POLICY_ULTRAWIDE_COLUMN_WIDTHS = [24, 28, 8, 16, 18, 22, 4] as const;
+const POLICY_TABLE_MIN_WIDTH = `${POLICY_COLUMN_WIDTHS.reduce((sum, width) => sum + width, 0)}rem`;
 
 interface Row {
   id: string;
@@ -292,9 +303,9 @@ export function Policies({
       (change) => change.committing && sameResourceId(change.policyId, r.id),
     );
     return (
-      <tr key={r.id} className="border-b border-line/60 hover:bg-ink-850">
+      <tr key={r.id} className="group border-b border-line/60 hover:bg-ink-850">
         <td
-          className="relative py-2 pr-3"
+          className="sticky left-0 z-[1] bg-ink-900 py-2 pr-3 group-hover:bg-ink-850"
           style={{ paddingLeft: treeIndent(depth) }}
         >
           <TreeLines
@@ -319,7 +330,7 @@ export function Policies({
             )}
             {childCount > 0 && (
               <span
-                className="shrink-0 rounded bg-ink-800 px-1.5 text-[11px] text-fg-muted"
+                className="shrink-0 rounded bg-ink-800 px-1.5 text-xs text-fg-muted"
                 title="Child policies inherit this policy's rules, which are evaluated before their own."
               >
                 Parent of {childCount}
@@ -370,7 +381,7 @@ export function Policies({
             isThreatIntelMode(p?.threatIntelMode) &&
             p.threatIntelMode !== policyDraft.policyMode.before &&
             p.threatIntelMode !== policyDraft.policyMode.after && (
-              <p className="mt-1 text-[11px] text-deny" role="alert">
+              <p className="mt-1 text-xs text-deny" role="alert">
                 Changed in Azure; discard and refresh before retrying.
               </p>
             )}
@@ -436,21 +447,21 @@ export function Policies({
   const parentCount = rows.length - managedCount;
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-end gap-3 border-b border-line px-6 pb-4 pt-5">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-xl font-semibold">Policies</h1>
-          <p className="mt-1 text-sm text-fg-muted">
+    <PageFrame>
+      <PageHeader
+        title={<h1 className="text-xl font-semibold">Policies</h1>}
+        subtitle={
+          <>
             {managedCount} {managedCount === 1 ? 'policy' : 'policies'} applied
             to your firewalls
             {parentCount > 0 &&
               `, plus ${parentCount} parent ${parentCount === 1 ? 'policy' : 'policies'} they inherit from`}
             . Threat-intelligence buttons change the local draft; save and
             commit to apply them.
-          </p>
-        </div>
-        {loading && <Spinner label="Loading policy details…" />}
-      </div>
+          </>
+        }
+        actions={loading ? <Spinner label="Loading policy details…" /> : null}
+      />
       <FilterBar
         items={rows}
         values={values}
@@ -471,22 +482,36 @@ export function Policies({
           to show on the Firewalls page.
         </EmptyState>
       ) : (
-        <div className="min-h-0 flex-1 overflow-auto">
-          <table className="w-full min-w-[1100px] table-fixed text-left text-sm">
+        <div
+          className="min-h-0 flex-1 overflow-auto"
+          role="region"
+          aria-label="Policies table"
+          tabIndex={0}
+        >
+          <table
+            className="w-full table-fixed text-left text-sm"
+            style={{ minWidth: POLICY_TABLE_MIN_WIDTH }}
+          >
+            <TableColumns
+              widths={POLICY_COLUMN_WIDTHS}
+              ultrawideWidths={POLICY_ULTRAWIDE_COLUMN_WIDTHS}
+            />
             <thead className="sticky top-0 z-10 bg-ink-900 text-xs text-fg-muted">
               <tr className="border-b border-line">
-                <th className="py-2 pl-6 pr-3 font-medium">Name</th>
-                <th className="w-64 px-3 py-2 font-medium">Applied to</th>
-                <th className="w-24 px-3 py-2 font-medium">Tier</th>
-                <th className="w-40 px-3 py-2 font-medium">Region</th>
-                <th className="w-44 px-3 py-2 font-medium">Threat intel</th>
+                <th className="sticky left-0 z-20 bg-ink-900 py-2 pl-6 pr-3 font-medium">
+                  Name
+                </th>
+                <th className="px-3 py-2 font-medium">Applied to</th>
+                <th className="px-3 py-2 font-medium">Tier</th>
+                <th className="px-3 py-2 font-medium">Region</th>
+                <th className="px-3 py-2 font-medium">Threat intel</th>
                 <th
-                  className="w-40 px-3 py-2 text-right font-medium"
+                  className="px-3 py-2 text-right font-medium"
                   title="Own rule collection groups / collections / rules (inherited rules not counted)"
                 >
                   Groups / colls / rules
                 </th>
-                <th className="w-12 py-2 pr-4" />
+                <th className="py-2 pr-4" />
               </tr>
             </thead>
             <tbody>
@@ -552,6 +577,6 @@ export function Policies({
           onClose={() => setSettingsId(undefined)}
         />
       )}
-    </div>
+    </PageFrame>
   );
 }

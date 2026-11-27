@@ -544,7 +544,7 @@ export function LogSetupWizard({
           </p>
 
           {kind === 'new' ? (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+            <div className="grid grid-cols-1 gap-x-4 gap-y-3 narrow:grid-cols-2">
               <div>
                 <span className="label">Subscription</span>
                 <SelectMenu<string>
@@ -653,7 +653,7 @@ export function LogSetupWizard({
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+            <div className="grid grid-cols-1 gap-x-4 gap-y-3 narrow:grid-cols-2">
               <div>
                 <span className="label">
                   Namespace (same region as the firewall)

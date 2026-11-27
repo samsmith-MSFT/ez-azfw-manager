@@ -116,7 +116,7 @@ export function DeployStatus({
         </div>
       )}
       {progress.phase === 'failed' && (
-        <div className="mb-4 flex gap-2 border border-deny/40 bg-deny/10 p-3 text-xs text-deny">
+        <div className="mb-4 flex gap-2 border border-deny/40 bg-deny-fill/10 p-3 text-xs text-deny">
           <XCircle size={16} className="shrink-0 text-deny" />
           <p className="whitespace-pre-line break-words">{progress.error}</p>
         </div>

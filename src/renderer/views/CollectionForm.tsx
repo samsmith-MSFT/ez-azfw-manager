@@ -46,7 +46,7 @@ const select =
 const invalidCls = 'border-deny focus:border-deny';
 const kindOrActionClass = (v: string) =>
   v === 'Deny'
-    ? 'bg-deny text-white'
+    ? 'bg-deny-fill text-white'
     : v === 'DNAT'
       ? 'bg-dnat text-ink-950'
       : 'bg-azure text-ink-950';
@@ -56,7 +56,7 @@ type CellErrors = Partial<Record<CellKey, string>>;
 function CellMessage({ error }: { error?: string }) {
   if (!error) return null;
   return (
-    <p className="mt-0.5 text-[11px] leading-4 text-deny" role="alert">
+    <p className="mt-0.5 text-xs leading-4 text-deny" role="alert">
       {error}
     </p>
   );
@@ -92,7 +92,7 @@ function ProtocolChips({
                     : [...value.filter((x) => x !== 'Any'), p],
               )
             }
-            className={`h-8 border px-1.5 text-[11px] font-medium ${on ? 'border-azure bg-azure/25 text-fg' : 'border-line text-fg-faint hover:bg-ink-800'}`}
+            className={`h-8 border px-1.5 text-xs font-medium ${on ? 'border-azure bg-azure/25 text-fg' : 'border-line text-fg-faint hover:bg-ink-800'}`}
           >
             {p}
           </button>
@@ -262,7 +262,7 @@ function TypedListCell({
           <button
             key={o.field}
             type="button"
-            className={`mt-0.5 block max-w-full truncate text-left text-[11px] hover:underline ${errors[o.field] ? 'text-deny' : 'text-azure'}`}
+            className={`mt-0.5 block max-w-full truncate text-left text-xs hover:underline ${errors[o.field] ? 'text-deny' : 'text-azure'}`}
             title={`${errors[o.field] ?? `Also: ${row.lists[o.field]}`}. Click to edit these.`}
             onClick={() =>
               onChange(
@@ -294,7 +294,7 @@ function RowDetails({
   errors: CellErrors;
 }) {
   return (
-    <div className="flex items-start gap-4 border-l-2 border-azure/40 bg-ink-900/60 px-3 py-2.5">
+    <div className="flex flex-wrap items-start gap-4 border-l-2 border-azure/40 bg-ink-900/60 px-3 py-2.5">
       <label className="block min-w-0 flex-1">
         <span className="mb-0.5 block text-xs text-fg-muted">Description</span>
         <input
@@ -610,7 +610,7 @@ export function CollectionForm({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto_auto_7rem] items-start gap-4">
+      <div className="grid grid-cols-1 items-start gap-4 narrow:grid-cols-[minmax(0,1fr)_auto_auto_7rem]">
         <label className="block">
           <span className="label">Collection name</span>
           <input
@@ -684,15 +684,15 @@ export function CollectionForm({
       </p>
 
       {collectionErrors.length > 0 && (
-        <ul className="list-disc space-y-0.5 border border-deny/40 bg-deny/10 py-2 pl-7 pr-3 text-xs text-deny">
+        <ul className="list-disc space-y-0.5 border border-deny/40 bg-deny-fill/10 py-2 pl-7 pr-3 text-xs text-deny">
           {collectionErrors.map((e) => (
             <li key={e}>{e}</li>
           ))}
         </ul>
       )}
 
-      <div className="border border-line">
-        <table className="w-full table-fixed text-left text-sm">
+      <div className="overflow-x-auto border border-line">
+        <table className="w-full min-w-[720px] table-fixed text-left text-sm">
           <thead className="bg-ink-900 text-xs text-fg-muted">
             <tr className="border-b border-line">
               <th className="w-7" aria-label="Details" />
@@ -721,7 +721,7 @@ export function CollectionForm({
               return (
                 <Fragment key={row.key}>
                   <tr
-                    className={`border-b border-line/60 ${flagged ? 'bg-deny/[0.06]' : ''}`}
+                    className={`border-b border-line/60 ${flagged ? 'bg-deny-fill/[0.06]' : ''}`}
                   >
                     <td className="px-1 py-1 align-top">
                       <button

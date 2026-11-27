@@ -116,6 +116,9 @@ export const IPC = {
   installUpdate: 'update:install',
   openReleasePage: 'update:openReleasePage',
   updateProgress: 'event:updateProgress',
+  getZoom: 'zoom:get',
+  setZoom: 'zoom:set',
+  zoomChanged: 'event:zoomChanged',
 } as const;
 
 /** Envelope used for every invoke() so the renderer receives clean error messages. */
@@ -220,6 +223,10 @@ export interface AzNetApi {
   installUpdate(): Promise<UpdateProgress>;
   /** Opens the newest release's page on GitHub in the browser. */
   openReleasePage(): Promise<void>;
+  /** Current user zoom as an exact factor. */
+  getZoom(): Promise<number>;
+  setZoom(factor: number): Promise<number>;
+  onZoomChanged(listener: (factor: number) => void): () => void;
   onUpdateProgress(listener: (progress: UpdateProgress) => void): () => void;
   onCommitProgress(listener: (progress: CommitProgress) => void): () => void;
   listSubscriptions(): Promise<SubscriptionInfo[]>;

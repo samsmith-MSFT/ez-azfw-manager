@@ -92,7 +92,7 @@ type ManualResult =
  * GitHub, then "Update to vX.Y.Z", which opens the release notes and the installer. A manual
  * check that finds nothing (or fails) answers in a small dialog.
  */
-export function UpdateButton() {
+export function UpdateButton({ compact = false }: { compact?: boolean }) {
   const { info, checking } = useUpdateState();
   const [open, setOpen] = useState(false);
   const [manual, setManual] = useState<ManualResult>();
@@ -115,10 +115,11 @@ export function UpdateButton() {
           type="button"
           onClick={() => setOpen(true)}
           title={`Version ${info.latestVersion} is available. You have ${info.currentVersion}.`}
-          className="no-drag mr-2 flex h-6 items-center gap-1.5 rounded bg-azure px-2.5 text-xs font-semibold text-ink-950 hover:bg-azure-hover"
+          aria-label={`Update to version ${info.latestVersion}`}
+          className="no-drag mr-2 flex h-6 items-center gap-1.5 rounded bg-azure px-2 text-xs font-semibold text-ink-950 hover:bg-azure-hover"
         >
           <Download size={13} aria-hidden />
-          Update to v{info.latestVersion}
+          {!compact && <span>Update to v{info.latestVersion}</span>}
         </button>
         {open && <UpdateDialog info={info} onClose={() => setOpen(false)} />}
       </>
@@ -135,14 +136,17 @@ export function UpdateButton() {
             ? `You have version ${info.currentVersion}. Check GitHub for a newer version.`
             : 'Check GitHub for a newer version.'
         }
-        className="no-drag mr-2 flex h-6 items-center gap-1.5 rounded border border-line px-2.5 text-xs font-medium text-fg-muted hover:bg-ink-800 hover:text-fg disabled:opacity-70"
+        aria-label={checking ? 'Checking for updates' : 'Check for updates'}
+        className="no-drag mr-2 flex h-6 items-center gap-1.5 rounded border border-line px-2 text-xs font-medium text-fg-muted hover:bg-ink-800 hover:text-fg disabled:opacity-70"
       >
         {checking ? (
           <Loader2 size={13} className="animate-spin" aria-hidden />
         ) : (
           <RefreshCw size={13} aria-hidden />
         )}
-        {checking ? 'Checking…' : 'Check for updates'}
+        {!compact && (
+          <span>{checking ? 'Checking…' : 'Check for updates'}</span>
+        )}
       </button>
       {manual && (
         <CheckResultDialog
@@ -196,7 +200,7 @@ function CheckResultDialog({
       {result.kind === 'error' ? (
         <div
           role="alert"
-          className="flex gap-2 border border-deny/40 bg-deny/10 p-3 text-sm text-deny"
+          className="flex gap-2 border border-deny/40 bg-deny-fill/10 p-3 text-sm text-deny"
         >
           <AlertTriangle size={16} className="shrink-0" />
           <span className="break-words">
@@ -332,7 +336,7 @@ function UpdateDialog({
       {error && (
         <div
           role="alert"
-          className="mb-4 flex gap-2 border border-deny/40 bg-deny/10 p-3 text-sm text-deny"
+          className="mb-4 flex gap-2 border border-deny/40 bg-deny-fill/10 p-3 text-sm text-deny"
         >
           <AlertTriangle size={16} className="shrink-0" />
           <span className="break-words">{error}</span>

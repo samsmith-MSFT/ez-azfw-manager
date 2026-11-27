@@ -33,6 +33,7 @@ Deleting the folder discards saved drafts that were never committed, so copy it 
 To reset only part of it, delete one item while the app is closed:
 
 - `ez-azfw-ruleman-state.json`: drafts, managed firewalls, commit history references, snapshot storage choice, saved session and Event Hub settings for **Firewall logs**.
+- `window-state.json`: remembered normal window bounds, maximized state and manual zoom.
 - `msal-cache.bin`: the encrypted sign-in tokens (**Sign out** in the app does this too).
 - `Local Storage/`: interface preferences such as the navigation state, auto-refresh interval and filters.
 

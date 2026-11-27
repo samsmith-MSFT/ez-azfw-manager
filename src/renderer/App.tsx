@@ -31,6 +31,7 @@ import { deployKey, useDeployActivity } from './activity';
 import { readSetting, writeSetting } from './storage';
 import type { DeployProgress, DeployRequest } from '../shared/deploy';
 import { resourceName, sameResourceId } from '../shared/resourceId';
+import { useTier } from './tier';
 import type {
   AccountInfo,
   CandidateStatus,
@@ -49,6 +50,7 @@ const EMPTY_STATUS: CandidateStatus = { pending: [], unsaved: false };
 
 export default function App() {
   const toast = useToast();
+  const tier = useTier();
   const [stage, setStage] = useState<Stage>('loading');
   const [account, setAccount] = useState<AccountInfo | null>(null);
   const [firewalls, setFirewalls] = useState<FirewallSummary[]>([]);
@@ -61,10 +63,30 @@ export default function App() {
   const [bladeOpen, setBladeOpen] = useState(
     () => readSetting(BLADE_KEY) !== 'collapsed',
   );
+  const [bladeOverlayOpen, setBladeOverlayOpen] = useState(false);
+  const bladeToggle = useRef<HTMLButtonElement>(null);
+  const bladeUsesOverlay = tier === 'compact' || tier === 'narrow';
+  const bladeAlwaysOpen = tier === 'wide' || tier === 'ultrawide';
+  const shownBladeOpen = bladeUsesOverlay
+    ? bladeOverlayOpen
+    : bladeAlwaysOpen || bladeOpen;
+  const closeBladeOverlay = useCallback(() => {
+    setBladeOverlayOpen(false);
+    requestAnimationFrame(() => bladeToggle.current?.focus());
+  }, []);
   const toggleBlade = () => {
+    if (bladeUsesOverlay) {
+      if (bladeOverlayOpen) closeBladeOverlay();
+      else setBladeOverlayOpen(true);
+      return;
+    }
+    if (bladeAlwaysOpen) return;
     writeSetting(BLADE_KEY, bladeOpen ? 'collapsed' : 'open');
     setBladeOpen(!bladeOpen);
   };
+  useEffect(() => {
+    if (!bladeUsesOverlay) setBladeOverlayOpen(false);
+  }, [bladeUsesOverlay]);
   const [policyId, setPolicyId] = useState<string>();
   const [ruleFocus, setRuleFocus] = useState<FlowHit>();
   const [logRule, setLogRule] = useState<LogRuleRef>();
@@ -440,7 +462,7 @@ export default function App() {
         <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
         {refreshError && (
           <span
-            className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-deny"
+            className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-deny-fill"
             aria-hidden
           />
         )}
@@ -455,7 +477,7 @@ export default function App() {
               Auto-refresh
             </span>
           }
-          triggerClassName="flex h-9 w-5 items-center justify-center text-fg-faint hover:bg-ink-800 hover:text-fg"
+          triggerClassName="flex h-9 w-6 items-center justify-center text-fg-faint hover:bg-ink-800 hover:text-fg"
           trigger={() => <ChevronDown size={12} />}
           items={AUTO_REFRESH_OPTIONS.map((m) => ({
             id: String(m),
@@ -548,16 +570,20 @@ export default function App() {
   const workspace = (
     <div className="flex h-full flex-col">
       <TitleBar
-        bladeOpen={bladeOpen}
-        onToggleBlade={toggleBlade}
+        bladeOpen={shownBladeOpen}
+        onToggleBlade={bladeAlwaysOpen ? undefined : toggleBlade}
+        toggleRef={bladeToggle}
         actions={activityMenu}
       />
-      <div className="flex min-h-0 flex-1">
+      <div className="relative flex min-h-0 flex-1">
         <Blade
-          open={bladeOpen}
+          open={shownBladeOpen}
+          overlay={bladeUsesOverlay && bladeOverlayOpen}
+          onCloseOverlay={closeBladeOverlay}
           tab={tab}
           onTab={(t) => {
             setTab(t);
+            if (bladeUsesOverlay) closeBladeOverlay();
             // Leaving the firewall chooser without saving keeps the current selection.
             if (stage === 'select' && managed.length) setStage('workspace');
           }}
@@ -565,7 +591,7 @@ export default function App() {
           onSignOut={signOut}
           onSwitchTenant={switchTenant}
         />
-        <main className="flex min-w-0 flex-1 flex-col">
+        <main className="flex min-h-0 min-w-0 flex-1 flex-col">
           {tab === 'logs' ? (
             <FirewallLogs
               managedFirewalls={managed}

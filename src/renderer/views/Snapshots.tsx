@@ -19,6 +19,7 @@ import {
   Badge,
   EmptyState,
   Notice,
+  PageHeader,
   Spinner,
   Truncate,
   ValueList,
@@ -128,7 +129,7 @@ function ContainerFields({
 }) {
   return (
     <div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 narrow:grid-cols-2">
         <div>
           <label className="label" htmlFor={`${idPrefix}-snapshots`}>
             Snapshot blob container
@@ -487,7 +488,7 @@ function StorageSetupCard({
               {setupError}
             </Notice>
           )}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 narrow:grid-cols-2">
             <div>
               <span className="label">Subscription</span>
               <SelectMenu
@@ -518,7 +519,7 @@ function StorageSetupCard({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 narrow:grid-cols-2">
             <div>
               <div className="mb-1 flex items-center justify-between">
                 <span className="label !mb-0">Resource group</span>
@@ -574,8 +575,8 @@ function StorageSetupCard({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="sm:col-span-2">
+          <div className="grid grid-cols-1 gap-4 narrow:grid-cols-3">
+            <div className="narrow:col-span-2">
               <label className="label" htmlFor="new-storage-name">
                 Storage account name
               </label>
@@ -684,7 +685,7 @@ function StorageSetupCard({
 
 const ACTION_COLOR: Record<string, string> = {
   Allow: 'bg-allow text-allow',
-  Deny: 'bg-deny text-deny',
+  Deny: 'bg-deny-fill text-deny',
   DNAT: 'bg-dnat text-dnat',
 };
 
@@ -925,14 +926,14 @@ export function Snapshots({
   }
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line px-6 pb-4 pt-5">
-        <div className="min-w-0 flex-1">
+    <div className="flex h-full min-h-0 flex-col overflow-y-auto">
+      <PageHeader
+        title={
           <div className="flex flex-wrap items-center gap-2.5">
             <h1 className="text-xl font-semibold">Firewall snapshots</h1>
-            <span className="inline-flex items-center gap-1.5 rounded border border-line bg-ink-900 px-2.5 py-0.5 text-xs text-fg-muted">
+            <span className="inline-flex max-w-full items-center gap-1.5 rounded border border-line bg-ink-900 px-2.5 py-0.5 text-xs text-fg-muted">
               <Database size={12} className="text-azure" />
-              <span className="font-mono text-fg">
+              <span className="break-all font-mono text-fg">
                 {storageConfig.storageAccountName}/{storageConfig.containerName}
               </span>
               {storageConfig.skuName && (
@@ -940,7 +941,7 @@ export function Snapshots({
               )}
               <button
                 type="button"
-                className="ml-1 text-fg-faint hover:text-fg"
+                className="ml-1 shrink-0 text-fg-faint hover:text-fg"
                 title="Open storage account in Azure portal"
                 onClick={() =>
                   window.api
@@ -951,6 +952,11 @@ export function Snapshots({
                 <ExternalLink size={12} />
               </button>
             </span>
+          </div>
+        }
+        subtitle="Cumulative policy states saved in shared Azure Blob Storage each time a commit is applied to Azure, newest first. Expand a snapshot to inspect its rule collection groups, rule collections, and rules, or roll back to a former state."
+        actions={
+          <>
             <button
               type="button"
               className="btn-ghost h-7 px-2 text-xs"
@@ -959,27 +965,21 @@ export function Snapshots({
               <Settings2 size={13} />
               Change storage
             </button>
-          </div>
-          <p className="mt-1 text-sm text-fg-muted">
-            Cumulative policy states saved in shared Azure Blob Storage each
-            time a commit is applied to Azure, newest first. Expand a snapshot
-            to inspect its rule collection groups, rule collections, and rules,
-            or roll back to a former state.
-          </p>
-        </div>
-        {policyOptions.length > 2 && (
-          <div className="w-64 shrink-0">
-            <span className="label">Policy</span>
-            <SelectMenu
-              label="Filter by policy"
-              widthClass="w-full"
-              value={policyFilter}
-              onChange={setPolicyFilter}
-              options={policyOptions}
-            />
-          </div>
-        )}
-      </div>
+            {policyOptions.length > 2 && (
+              <div className="w-64 max-w-full shrink-0">
+                <span className="label">Policy</span>
+                <SelectMenu
+                  label="Filter by policy"
+                  widthClass="w-full"
+                  value={policyFilter}
+                  onChange={setPolicyFilter}
+                  options={policyOptions}
+                />
+              </div>
+            )}
+          </>
+        }
+      />
 
       <div className="min-h-0 flex-1 overflow-y-auto p-6">
         {accessNotice && (
@@ -1264,7 +1264,7 @@ export function Snapshots({
                                                                     {r.name}
                                                                   </Truncate>
                                                                   {r.description && (
-                                                                    <Truncate className="text-[11px] text-fg-faint">
+                                                                    <Truncate className="text-xs text-fg-faint">
                                                                       {
                                                                         r.description
                                                                       }

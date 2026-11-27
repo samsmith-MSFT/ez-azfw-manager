@@ -27,13 +27,22 @@ import {
   PanelLeftOpen,
 } from 'lucide-react';
 import { readSetting, writeSetting } from '../storage';
+import { useTier } from '../tier';
 
 const LIST_PANEL_KEY = 'ez-azfw-ruleman.groups-panel';
 import { EllipsisMenu, SelectMenu } from '../components/Dropdown';
 import { useResourceMenuItems } from '../components/resourceMenu';
 import { loadPolicyChain } from '../policyChain';
 import { ConfirmModal } from '../components/Modal';
-import { EmptyState, Badge, Truncate, ValueList } from '../components/ui';
+import {
+  EmptyState,
+  Badge,
+  PageFrame,
+  PageHeader,
+  TableColumns,
+  Truncate,
+  ValueList,
+} from '../components/ui';
 import { QuipSpinner } from '../components/QuipSpinner';
 import { errorMessage, useToast } from '../components/Toast';
 import {
@@ -121,9 +130,17 @@ function DiffMark({ kind }: { kind?: ChangeKind }) {
 
 const ACTION_COLOR: Record<string, string> = {
   Allow: 'bg-allow text-allow',
-  Deny: 'bg-deny text-deny',
+  Deny: 'bg-deny-fill text-deny',
   DNAT: 'bg-dnat text-dnat',
 };
+
+const RULE_COLUMN_WIDTHS = [1.75, 12, 6, 14, 8, 14, 9, 3] as const;
+/** 120rem in total, with Name capped at 24rem and the spare width given to traffic columns. */
+const RULE_ULTRAWIDE_COLUMN_WIDTHS = [
+  1.75, 24, 7, 27, 12, 31, 14.25, 3,
+] as const;
+const RULE_TABLE_MIN_WIDTH = `${RULE_COLUMN_WIDTHS.reduce((sum, width) => sum + width, 0)}rem`;
+const RULE_NAME_LEFT = `${RULE_COLUMN_WIDTHS[0]}rem`;
 
 /** Rule action as a colored word with a short edge bar, instead of a pill. */
 function ActionMark({ action }: { action: string }) {
@@ -210,13 +227,40 @@ export function PolicyEditor({
   newRule?: { suggestion: RuleSuggestion; firewallPolicyId: string };
 }) {
   const toast = useToast();
+  const tier = useTier();
   const [listOpen, setListOpen] = useState(
     () => readSetting(LIST_PANEL_KEY) !== 'collapsed',
   );
+  const [listOverlayOpen, setListOverlayOpen] = useState(false);
+  const listToggle = useRef<HTMLButtonElement>(null);
+  const listPanel = useRef<HTMLElement>(null);
+  const listUsesOverlay = tier === 'compact' || tier === 'narrow';
+  const listAlwaysOpen = tier === 'wide' || tier === 'ultrawide';
+  const shownListOpen = listUsesOverlay
+    ? listOverlayOpen
+    : listAlwaysOpen || listOpen;
+  const closeListOverlay = useCallback(() => {
+    setListOverlayOpen(false);
+    requestAnimationFrame(() => listToggle.current?.focus());
+  }, []);
   const toggleList = () => {
+    if (listUsesOverlay) {
+      if (listOverlayOpen) closeListOverlay();
+      else setListOverlayOpen(true);
+      return;
+    }
+    if (listAlwaysOpen) return;
     writeSetting(LIST_PANEL_KEY, listOpen ? 'collapsed' : 'open');
     setListOpen(!listOpen);
   };
+  useEffect(() => {
+    if (!listUsesOverlay) setListOverlayOpen(false);
+  }, [listUsesOverlay]);
+  useEffect(() => {
+    if (!listUsesOverlay || !listOverlayOpen) return;
+    const frame = requestAnimationFrame(() => listPanel.current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [listUsesOverlay, listOverlayOpen]);
   const [view, setView] = useState<PolicyView | null>(null);
   /** Parent (base) policies, nearest first. Their groups are processed before this policy's. */
   const [parents, setParents] = useState<PolicyView[]>([]);
@@ -668,7 +712,10 @@ export function PolicyEditor({
     return (
       <button
         key={group.id}
-        onClick={() => setGroupId(group.id)}
+        onClick={() => {
+          setGroupId(group.id);
+          if (listUsesOverlay) closeListOverlay();
+        }}
         aria-current={active ? 'true' : undefined}
         className={`flex h-9 w-full items-center gap-3 border-l-2 pl-[14px] pr-3 text-left ${
           active
@@ -692,7 +739,7 @@ export function PolicyEditor({
         </span>
         {matchCounts && (
           <span
-            className={`shrink-0 rounded px-1.5 font-mono text-[11px] ${matchCounts.get(group.id) ? 'bg-azure/20 text-azure' : 'text-fg-faint'}`}
+            className={`shrink-0 rounded px-1.5 font-mono text-xs ${matchCounts.get(group.id) ? 'bg-azure/20 text-azure' : 'text-fg-faint'}`}
             title="Rules matching your search"
           >
             {matchCounts.get(group.id) ?? 0}
@@ -758,13 +805,33 @@ export function PolicyEditor({
 
   return (
     <RuleLookupsContext.Provider value={lookups}>
-      <div className="flex h-full min-h-0">
+      <div className="relative flex h-full min-h-0">
+        {listUsesOverlay && listOverlayOpen && (
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-label="Close policy and rule collection groups"
+            className="absolute inset-0 z-20 bg-ink-950/60"
+            onClick={closeListOverlay}
+          />
+        )}
         <aside
-          className={`flex shrink-0 flex-col border-r border-line transition-[width] duration-150 ${listOpen ? 'w-64' : 'w-[52px]'}`}
+          ref={listPanel}
+          tabIndex={-1}
+          className={`flex shrink-0 flex-col overflow-y-auto border-r border-line transition-[width] duration-150 ${shownListOpen ? 'w-64' : 'w-[52px]'} ${listUsesOverlay && listOverlayOpen ? 'absolute inset-y-0 left-0 z-30 shadow-[12px_0_30px_rgba(4,10,20,0.45)]' : ''}`}
+          role={listUsesOverlay && listOverlayOpen ? 'dialog' : undefined}
+          aria-modal={listUsesOverlay && listOverlayOpen ? true : undefined}
           aria-label="Policy and rule collection groups"
+          onKeyDown={(event) => {
+            if (event.key === 'Escape' && listUsesOverlay && listOverlayOpen) {
+              event.preventDefault();
+              closeListOverlay();
+            }
+          }}
         >
-          {!listOpen && (
+          {!shownListOpen && (
             <button
+              ref={listToggle}
               type="button"
               onClick={toggleList}
               aria-label="Show policy and rule collection groups"
@@ -775,20 +842,23 @@ export function PolicyEditor({
               <PanelLeftOpen size={18} />
             </button>
           )}
-          <div className={listOpen ? 'contents' : 'hidden'}>
+          <div className={shownListOpen ? 'contents' : 'hidden'}>
             <div className="p-4 pb-3">
               <div className="flex items-center justify-between">
                 <span className="label !mb-0">Policy</span>
-                <button
-                  type="button"
-                  onClick={toggleList}
-                  aria-label="Hide policy and rule collection groups"
-                  aria-expanded
-                  title="Hide policy and rule collection groups"
-                  className="btn-ghost -mr-2 h-7 w-7 justify-center px-0"
-                >
-                  <PanelLeftClose size={16} />
-                </button>
+                {!listAlwaysOpen && (
+                  <button
+                    ref={listToggle}
+                    type="button"
+                    onClick={toggleList}
+                    aria-label="Hide policy and rule collection groups"
+                    aria-expanded
+                    title="Hide policy and rule collection groups"
+                    className="btn-ghost h-7 w-7 justify-center px-0"
+                  >
+                    <PanelLeftClose size={16} />
+                  </button>
+                )}
               </div>
               <div className="mt-1">
                 <SelectMenu
@@ -825,9 +895,11 @@ export function PolicyEditor({
               </dl>
             )}
 
-            <div className="flex items-center justify-between py-2 pl-4 pr-2">
-              <h2 className="text-sm font-semibold">Rule collection groups</h2>
-              <div className="flex">
+            <div className="flex flex-wrap items-center gap-2 py-2 pl-4 pr-2">
+              <h2 className="min-w-0 flex-1 text-sm font-semibold">
+                Rule collection groups
+              </h2>
+              <div className="ml-auto flex shrink-0">
                 <button
                   className="btn-ghost w-8 justify-center px-0"
                   onClick={() => setModal({ kind: 'newGroup' })}
@@ -864,7 +936,7 @@ export function PolicyEditor({
               className="min-h-0 flex-1 overflow-y-auto pb-3"
             >
               {view && (parents.length > 0 || view.groups.length > 0) && (
-                <p className="px-4 pb-2 text-[11px] leading-4 text-fg-faint">
+                <p className="px-4 pb-2 text-xs leading-4 text-fg-faint">
                   Azure checks DNAT, then Network, then Application rules;
                   {parents.length > 0 && ' inherited groups first,'} groups and
                   collections by priority. First match wins.
@@ -907,13 +979,13 @@ export function PolicyEditor({
           </div>
         </aside>
 
-        <section className="flex min-w-0 flex-1 flex-col">
+        <PageFrame as="section" className="flex-1">
           {loading && !view ? (
             <div className="flex flex-1 items-center justify-center">
               <QuipSpinner topic="policy" />
             </div>
           ) : error ? (
-            <div className="m-6 border-l-2 border-deny bg-deny/10 p-4 text-sm">
+            <div className="m-6 border-l-2 border-deny bg-deny-fill/10 p-4 text-sm">
               <p className="font-semibold">Couldn't load this policy.</p>
               <p className="mt-1 text-fg-muted">{error}</p>
             </div>
@@ -942,13 +1014,15 @@ export function PolicyEditor({
             )
           ) : (
             <>
-              <div className="flex flex-wrap items-end gap-3 border-b border-line px-6 pb-4 pt-5">
-                <div className="min-w-0 flex-[1_1_16rem]">
+              <PageHeader
+                title={
                   <h1
-                    className="flex items-center gap-2 text-xl font-semibold"
+                    className="flex flex-wrap items-center gap-2 text-xl font-semibold"
                     title={current.group.name}
                   >
-                    <span className="truncate">{current.group.name}</span>
+                    <span className="min-w-0 break-words">
+                      {current.group.name}
+                    </span>
                     {current.isNew && (
                       <Badge
                         tone="candidate"
@@ -963,7 +1037,9 @@ export function PolicyEditor({
                       </Badge>
                     )}
                   </h1>
-                  <p className="mt-1 break-words text-sm text-fg-muted">
+                }
+                subtitle={
+                  <>
                     Priority {current.group.priority}.
                     {readOnly ? (
                       <span>
@@ -998,73 +1074,77 @@ export function PolicyEditor({
                         </span>
                       )
                     )}
-                  </p>
-                </div>
-                <div className="flex min-w-0 max-w-full flex-wrap items-center gap-3">
-                  <div className="relative min-w-0 flex-[1_1_15rem]">
-                    <Search
-                      size={14}
-                      className="absolute left-2.5 top-[9px] text-fg-faint"
+                  </>
+                }
+                actions={
+                  <>
+                    <div className="relative min-w-0 flex-[1_1_15rem]">
+                      <Search
+                        size={14}
+                        className="absolute left-2.5 top-[9px] text-fg-faint"
+                      />
+                      <input
+                        className="input pl-8"
+                        aria-label="Filter rules"
+                        placeholder="Search all groups: name, IP, port…"
+                        title="Searches every group in this policy. IPs also find the CIDRs and ranges that contain them; ports find the ranges that cover them."
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                      />
+                    </div>
+                    {!readOnly && (
+                      <button
+                        className="btn-outline shrink-0"
+                        onClick={() => setModal({ kind: 'collection' })}
+                      >
+                        <Plus size={15} /> Add rule collection
+                      </button>
+                    )}
+                    {current.staged && !readOnly && (
+                      <button
+                        className="btn-ghost shrink-0"
+                        onClick={revertGroup}
+                      >
+                        <Undo2 size={15} />{' '}
+                        {current.isNew
+                          ? 'Discard new group'
+                          : 'Discard changes'}
+                      </button>
+                    )}
+                    <EllipsisMenu
+                      label="Group actions"
+                      items={[
+                        ...(readOnly
+                          ? []
+                          : [
+                              {
+                                label: 'Change priority…',
+                                icon: <Pencil size={14} />,
+                                onSelect: () => setModal({ kind: 'group' }),
+                              },
+                            ]),
+                        ...(current.isNew
+                          ? []
+                          : resourceMenuItems(current.group.id)),
+                        { label: '', divider: true },
+                        {
+                          label: 'Export this group to CSV…',
+                          icon: <Download size={14} />,
+                          onSelect: () => exportCsv('group'),
+                        },
+                        {
+                          label: 'Export all groups to CSV…',
+                          icon: <Download size={14} />,
+                          onSelect: () => exportCsv('policy'),
+                        },
+                      ]}
                     />
-                    <input
-                      className="input pl-8"
-                      aria-label="Filter rules"
-                      placeholder="Search all groups: name, IP, port…"
-                      title="Searches every group in this policy. IPs also find the CIDRs and ranges that contain them; ports find the ranges that cover them."
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                    />
-                  </div>
-                  {!readOnly && (
-                    <button
-                      className="btn-outline shrink-0"
-                      onClick={() => setModal({ kind: 'collection' })}
-                    >
-                      <Plus size={15} /> Add rule collection
-                    </button>
-                  )}
-                  {current.staged && !readOnly && (
-                    <button
-                      className="btn-ghost shrink-0"
-                      onClick={revertGroup}
-                    >
-                      <Undo2 size={15} />{' '}
-                      {current.isNew ? 'Discard new group' : 'Discard changes'}
-                    </button>
-                  )}
-                  <EllipsisMenu
-                    label="Group actions"
-                    items={[
-                      ...(readOnly
-                        ? []
-                        : [
-                            {
-                              label: 'Change priority…',
-                              icon: <Pencil size={14} />,
-                              onSelect: () => setModal({ kind: 'group' }),
-                            },
-                          ]),
-                      ...(current.isNew
-                        ? []
-                        : resourceMenuItems(current.group.id)),
-                      { label: '', divider: true },
-                      {
-                        label: 'Export this group to CSV…',
-                        icon: <Download size={14} />,
-                        onSelect: () => exportCsv('group'),
-                      },
-                      {
-                        label: 'Export all groups to CSV…',
-                        icon: <Download size={14} />,
-                        onSelect: () => exportCsv('policy'),
-                      },
-                    ]}
-                  />
-                </div>
-              </div>
+                  </>
+                }
+              />
 
               {current.drift && (
-                <div className="mx-6 mt-4 flex items-start gap-2 border-l-2 border-deny bg-deny/10 px-3 py-2 text-sm">
+                <div className="mx-6 mt-4 flex items-start gap-2 border-l-2 border-deny bg-deny-fill/10 px-3 py-2 text-sm">
                   <AlertTriangle
                     size={15}
                     className="mt-0.5 shrink-0 text-deny"
@@ -1087,7 +1167,12 @@ export function PolicyEditor({
                 </div>
               )}
 
-              <div className="min-h-0 flex-1 overflow-auto">
+              <div
+                className="min-h-0 flex-1 overflow-auto"
+                role="region"
+                aria-label="Policy rules table"
+                tabIndex={0}
+              >
                 {!collections.length && !removed.collections.length ? (
                   <EmptyState
                     icon={<ListTree size={22} />}
@@ -1121,17 +1206,32 @@ export function PolicyEditor({
                     )}
                   </EmptyState>
                 ) : (
-                  <table className="w-full min-w-[1200px] table-fixed text-left text-sm">
+                  <table
+                    className="w-full table-fixed text-left text-sm"
+                    style={{ minWidth: RULE_TABLE_MIN_WIDTH }}
+                  >
+                    <TableColumns
+                      widths={RULE_COLUMN_WIDTHS}
+                      ultrawideWidths={RULE_ULTRAWIDE_COLUMN_WIDTHS}
+                    />
                     <thead className="sticky top-0 z-10 bg-ink-900 text-xs text-fg-muted">
                       <tr className="border-b border-line">
-                        <th className="w-7" aria-label="Change" />
-                        <th className="w-48 px-3 py-2 font-medium">Name</th>
-                        <th className="w-24 px-3 py-2 font-medium">Type</th>
+                        <th
+                          className="sticky left-0 z-20 bg-ink-900"
+                          aria-label="Change"
+                        />
+                        <th
+                          className="sticky z-20 bg-ink-900 px-3 py-2 font-medium"
+                          style={{ left: RULE_NAME_LEFT }}
+                        >
+                          Name
+                        </th>
+                        <th className="px-3 py-2 font-medium">Type</th>
                         <th className="px-3 py-2 font-medium">Source</th>
-                        <th className="w-32 px-3 py-2 font-medium">Service</th>
+                        <th className="px-3 py-2 font-medium">Service</th>
                         <th className="px-3 py-2 font-medium">Destination</th>
-                        <th className="w-36 px-3 py-2 font-medium">Action</th>
-                        <th className="w-12 pr-4" />
+                        <th className="px-3 py-2 font-medium">Action</th>
+                        <th className="pr-4" />
                       </tr>
                     </thead>
                     <tbody>
@@ -1149,7 +1249,7 @@ export function PolicyEditor({
                         return (
                           <Fragment key={c.name}>
                             <tr className="border-b border-line bg-ink-850">
-                              <td className="text-center font-mono text-base font-bold text-candidate">
+                              <td className="sticky left-0 z-[1] bg-ink-850 text-center font-mono text-base font-bold text-candidate">
                                 <DiffMark
                                   kind={
                                     colMark ??
@@ -1250,7 +1350,7 @@ export function PolicyEditor({
                               return (
                                 <tr
                                   key={r.name}
-                                  className={`border-b border-line/60 align-top ${readOnly ? '' : 'cursor-pointer'} ${mark ? 'bg-candidate/[0.06]' : 'hover:bg-ink-850'}`}
+                                  className={`group border-b border-line/60 align-top ${readOnly ? '' : 'cursor-pointer'} ${mark ? 'bg-candidate/[0.06]' : 'hover:bg-ink-850'}`}
                                   title={readOnly ? undefined : 'Click to edit'}
                                   onClick={() =>
                                     !readOnly &&
@@ -1261,10 +1361,13 @@ export function PolicyEditor({
                                     })
                                   }
                                 >
-                                  <td className="py-2 text-center font-mono text-base font-bold leading-[18px] text-candidate">
+                                  <td className="sticky left-0 z-[1] bg-ink-900 py-2 text-center font-mono text-base font-bold leading-[18px] text-candidate group-hover:bg-ink-850">
                                     <DiffMark kind={mark} />
                                   </td>
-                                  <td className="relative py-2 pl-[30px] pr-3">
+                                  <td
+                                    className="sticky z-[1] bg-ink-900 py-2 pl-[30px] pr-3 group-hover:bg-ink-850"
+                                    style={{ left: RULE_NAME_LEFT }}
+                                  >
                                     <TreeLines
                                       depth={1}
                                       last={lastRule}
@@ -1390,12 +1493,15 @@ export function PolicyEditor({
                             {removedHere.map(({ rule, index }, ri) => (
                               <tr
                                 key={`removed:${rule.name}`}
-                                className="border-b border-line/60 bg-deny/[0.05] align-top text-fg-faint"
+                                className="group border-b border-line/60 bg-deny-fill/[0.05] align-top text-fg-faint"
                               >
-                                <td className="py-2 text-center font-mono text-base font-bold leading-[18px] text-deny">
+                                <td className="sticky left-0 z-[1] bg-ink-900 py-2 text-center font-mono text-base font-bold leading-[18px] text-deny">
                                   <DiffMark kind="removed" />
                                 </td>
-                                <td className="relative py-2 pl-[30px] pr-3">
+                                <td
+                                  className="sticky z-[1] bg-ink-900 py-2 pl-[30px] pr-3"
+                                  style={{ left: RULE_NAME_LEFT }}
+                                >
                                   <TreeLines
                                     depth={1}
                                     last={ri === removedHere.length - 1}
@@ -1463,9 +1569,9 @@ export function PolicyEditor({
                       {removed.collections.map((c) => (
                         <tr
                           key={`removed-collection:${c.name}`}
-                          className="border-b border-line bg-deny/[0.05] text-fg-faint"
+                          className="border-b border-line bg-deny-fill/[0.05] text-fg-faint"
                         >
-                          <td className="text-center font-mono text-base font-bold text-deny">
+                          <td className="sticky left-0 z-[1] bg-ink-900 text-center font-mono text-base font-bold text-deny">
                             <DiffMark kind="removed" />
                           </td>
                           <td colSpan={6} className="py-2 pr-3">
@@ -1495,7 +1601,7 @@ export function PolicyEditor({
               </div>
             </>
           )}
-        </section>
+        </PageFrame>
 
         {modal?.kind === 'collection' && current && (
           <CollectionEditor

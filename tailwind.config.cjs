@@ -2,6 +2,13 @@
 module.exports = {
   content: ['./index.html', './src/renderer/**/*.{ts,tsx}'],
   theme: {
+    // Breakpoints are CSS pixels, so window size and zoom feed the same responsive rules.
+    screens: {
+      narrow: '720px',
+      lg: '1024px',
+      wide: '1680px',
+      ultra: '2400px',
+    },
     // Square, console-like geometry: containers have no radius, controls barely any.
     borderRadius: {
       none: '0',
@@ -22,10 +29,10 @@ module.exports = {
         fg: {
           DEFAULT: '#E4EAF3',
           muted: '#93A4BD',
-          faint: '#62748F',
+          faint: '#8394AE',
         },
         azure: {
-          DEFAULT: '#3A96DD',
+          DEFAULT: '#409EE2',
           hover: '#55A8E8',
           deep: '#1F6FB2',
         },
@@ -36,8 +43,11 @@ module.exports = {
           ink: '#2A1C05',
         },
         allow: '#3FB27F',
-        deny: '#E5534B',
-        dnat: '#9A7BEA',
+        deny: {
+          DEFAULT: '#F0716A',
+          fill: '#E5534B',
+        },
+        dnat: '#A78BF0',
       },
       fontFamily: {
         sans: [

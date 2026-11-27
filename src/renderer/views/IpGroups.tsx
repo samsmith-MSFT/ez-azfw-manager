@@ -8,6 +8,7 @@ import { TreeLines, treeIndent } from '../components/TreeLines';
 import {
   EmptyState,
   Notice,
+  PageHeader,
   Spinner,
   StatusDot,
   ValueList,
@@ -98,18 +99,16 @@ export function IpGroups({
   }, [shown]);
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-end gap-3 border-b border-line px-6 pb-4 pt-5">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-xl font-semibold">IP groups</h1>
-          <p className="mt-1 text-sm text-fg-muted">
-            IP groups across the subscriptions you can access in this directory.
-          </p>
-        </div>
-        <button className="btn-outline" onClick={() => setShowCreate(true)}>
-          <Plus size={15} /> Create IP group
-        </button>
-      </div>
+    <div className="flex h-full min-h-0 flex-col overflow-y-auto">
+      <PageHeader
+        title={<h1 className="text-xl font-semibold">IP groups</h1>}
+        subtitle="IP groups across the subscriptions you can access in this directory."
+        actions={
+          <button className="btn-outline" onClick={() => setShowCreate(true)}>
+            <Plus size={15} /> Create IP group
+          </button>
+        }
+      />
       <FilterBar
         items={groups}
         values={IP_GROUP_FILTERS}
@@ -147,7 +146,7 @@ export function IpGroups({
         </EmptyState>
       ) : groups.length > 0 ? (
         <div className="min-h-0 flex-1 overflow-auto">
-          <table className="w-full table-fixed text-left text-sm">
+          <table className="w-full min-w-[800px] table-fixed text-left text-sm">
             <thead className="sticky top-0 z-10 bg-ink-900 text-xs text-fg-muted">
               <tr className="border-b border-line">
                 <th className="py-2 pl-6 pr-3 font-medium">Name</th>

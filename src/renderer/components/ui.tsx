@@ -1,5 +1,84 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
+
+/**
+ * Keeps a data view readable on large displays without centring it away from the navigation.
+ * The wider logs variant leaves room for the docked details panel and the useful live-grid columns.
+ */
+export function PageFrame({
+  as: Component = 'div',
+  children,
+  className = '',
+  variant = 'standard',
+}: {
+  as?: 'div' | 'section';
+  children: ReactNode;
+  className?: string;
+  variant?: 'standard' | 'logs';
+}) {
+  return (
+    <Component
+      data-page-frame={variant}
+      className={`flex h-full min-h-0 w-full min-w-0 flex-col overflow-y-auto ${variant === 'logs' ? 'max-w-[140rem]' : 'max-w-[120rem]'} ${className}`}
+    >
+      {children}
+    </Component>
+  );
+}
+
+/** Responsive <col> widths: minimum at normal sizes, balanced allocation in the ultrawide frame. */
+export function TableColumns({
+  widths,
+  ultrawideWidths = widths,
+}: {
+  widths: readonly number[];
+  ultrawideWidths?: readonly number[];
+}) {
+  return (
+    <colgroup>
+      {widths.map((width, index) => (
+        <col
+          key={index}
+          className="w-[var(--column-width)] ultra:w-[var(--ultrawide-column-width)]"
+          style={
+            {
+              '--column-width': `${width}rem`,
+              '--ultrawide-column-width': `${ultrawideWidths[index] ?? width}rem`,
+            } as CSSProperties
+          }
+        />
+      ))}
+    </colgroup>
+  );
+}
+
+export function PageHeader({
+  title,
+  subtitle,
+  actions,
+}: {
+  title: ReactNode;
+  subtitle?: ReactNode;
+  actions?: ReactNode;
+}) {
+  return (
+    <header className="flex flex-wrap items-end gap-3 border-b border-line px-4 pb-4 pt-5 narrow:px-6">
+      <div className="min-w-0 flex-[1_1_16rem]">
+        <div className="min-w-0 [overflow-wrap:anywhere]">{title}</div>
+        {subtitle && (
+          <div className="mt-1 text-sm text-fg-muted [overflow-wrap:anywhere]">
+            {subtitle}
+          </div>
+        )}
+      </div>
+      {actions && (
+        <div className="flex max-w-full flex-wrap items-center gap-3">
+          {actions}
+        </div>
+      )}
+    </header>
+  );
+}
 
 export function Spinner({
   label,
@@ -126,7 +205,7 @@ export function StatusDot({ state }: { state?: string }) {
     state === 'Succeeded'
       ? 'bg-allow'
       : state === 'Failed'
-        ? 'bg-deny'
+        ? 'bg-deny-fill'
         : 'bg-fg-faint';
   return (
     <span
@@ -152,7 +231,7 @@ export function Notice({
   return (
     <div
       role={tone === 'error' ? 'alert' : 'status'}
-      className={`border-l-2 p-4 text-sm ${tone === 'error' ? 'border-deny bg-deny/10' : 'border-azure bg-azure/[0.08]'}`}
+      className={`border-l-2 p-4 text-sm ${tone === 'error' ? 'border-deny bg-deny-fill/10' : 'border-azure bg-azure/[0.08]'}`}
     >
       <p className="font-semibold text-fg">{title}</p>
       {children && (

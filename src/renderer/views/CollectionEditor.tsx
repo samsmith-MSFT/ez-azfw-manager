@@ -394,7 +394,7 @@ export function NewGroupEditor({
             save();
           }}
         >
-          <div className="grid grid-cols-[minmax(0,1fr)_10rem] gap-4">
+          <div className="grid grid-cols-1 gap-4 narrow:grid-cols-[minmax(0,1fr)_10rem]">
             <div>
               <label className="label" htmlFor="grp-name">
                 Group name
