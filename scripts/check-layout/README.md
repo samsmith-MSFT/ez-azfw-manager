@@ -19,6 +19,13 @@ npm run check:layout -- --size 1440x900 --zoom 150
 npm run check:layout -- --list-views
 ```
 
+The Account regression checks popup bounds, scroll-reachability of Zoom out/in, Reset and Sign out, and Escape focus return across the full matrix (including 300% zoom). It also keeps the menu open between zoom changes. These checks fail in either report or assertion mode:
+
+```sh
+npm run check:layout -- --view account-menu --skip-screenshots
+npm run check:layout -- --view account-menu --size 1100x680 --zoom 300
+```
+
 Sizes are Electron **content** sizes in DIP, not the outside window frame. Zoom accepts either a percent (`200`) or factor (`2`). Focus flags must match an entry in the plan's matrix.
 
 ## Modes and output

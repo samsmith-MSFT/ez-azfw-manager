@@ -205,7 +205,7 @@ export function StatusDot({ state }: { state?: string }) {
     state === 'Succeeded'
       ? 'bg-allow'
       : state === 'Failed'
-        ? 'bg-deny'
+        ? 'bg-deny-fill'
         : 'bg-fg-faint';
   return (
     <span
@@ -231,7 +231,7 @@ export function Notice({
   return (
     <div
       role={tone === 'error' ? 'alert' : 'status'}
-      className={`border-l-2 p-4 text-sm ${tone === 'error' ? 'border-deny bg-deny/10' : 'border-azure bg-azure/[0.08]'}`}
+      className={`border-l-2 p-4 text-sm ${tone === 'error' ? 'border-deny bg-deny-fill/10' : 'border-azure bg-azure/[0.08]'}`}
     >
       <p className="font-semibold text-fg">{title}</p>
       {children && (

@@ -279,7 +279,7 @@ export function FlowTester({
   const tone =
     verdict === 'Allow' || verdict === 'DNAT'
       ? 'border-allow/50 bg-allow/10'
-      : 'border-deny/50 bg-deny/10';
+      : 'border-deny/50 bg-deny-fill/10';
 
   return (
     <div>

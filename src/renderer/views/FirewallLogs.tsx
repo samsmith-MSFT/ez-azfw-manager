@@ -439,7 +439,7 @@ function StatusChip({
     state === 'connected'
       ? 'bg-allow'
       : state === 'failed'
-        ? 'bg-deny'
+        ? 'bg-deny-fill'
         : state === 'idle' || state === 'stopped'
           ? 'bg-fg-faint'
           : 'bg-azure animate-pulse';

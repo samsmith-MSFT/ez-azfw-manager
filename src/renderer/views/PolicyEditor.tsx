@@ -130,7 +130,7 @@ function DiffMark({ kind }: { kind?: ChangeKind }) {
 
 const ACTION_COLOR: Record<string, string> = {
   Allow: 'bg-allow text-allow',
-  Deny: 'bg-deny text-deny',
+  Deny: 'bg-deny-fill text-deny',
   DNAT: 'bg-dnat text-dnat',
 };
 
@@ -739,7 +739,7 @@ export function PolicyEditor({
         </span>
         {matchCounts && (
           <span
-            className={`shrink-0 rounded px-1.5 font-mono text-[11px] ${matchCounts.get(group.id) ? 'bg-azure/20 text-azure' : 'text-fg-faint'}`}
+            className={`shrink-0 rounded px-1.5 font-mono text-xs ${matchCounts.get(group.id) ? 'bg-azure/20 text-azure' : 'text-fg-faint'}`}
             title="Rules matching your search"
           >
             {matchCounts.get(group.id) ?? 0}
@@ -936,7 +936,7 @@ export function PolicyEditor({
               className="min-h-0 flex-1 overflow-y-auto pb-3"
             >
               {view && (parents.length > 0 || view.groups.length > 0) && (
-                <p className="px-4 pb-2 text-[11px] leading-4 text-fg-faint">
+                <p className="px-4 pb-2 text-xs leading-4 text-fg-faint">
                   Azure checks DNAT, then Network, then Application rules;
                   {parents.length > 0 && ' inherited groups first,'} groups and
                   collections by priority. First match wins.
@@ -985,7 +985,7 @@ export function PolicyEditor({
               <QuipSpinner topic="policy" />
             </div>
           ) : error ? (
-            <div className="m-6 border-l-2 border-deny bg-deny/10 p-4 text-sm">
+            <div className="m-6 border-l-2 border-deny bg-deny-fill/10 p-4 text-sm">
               <p className="font-semibold">Couldn't load this policy.</p>
               <p className="mt-1 text-fg-muted">{error}</p>
             </div>
@@ -1144,7 +1144,7 @@ export function PolicyEditor({
               />
 
               {current.drift && (
-                <div className="mx-6 mt-4 flex items-start gap-2 border-l-2 border-deny bg-deny/10 px-3 py-2 text-sm">
+                <div className="mx-6 mt-4 flex items-start gap-2 border-l-2 border-deny bg-deny-fill/10 px-3 py-2 text-sm">
                   <AlertTriangle
                     size={15}
                     className="mt-0.5 shrink-0 text-deny"
@@ -1493,7 +1493,7 @@ export function PolicyEditor({
                             {removedHere.map(({ rule, index }, ri) => (
                               <tr
                                 key={`removed:${rule.name}`}
-                                className="group border-b border-line/60 bg-deny/[0.05] align-top text-fg-faint"
+                                className="group border-b border-line/60 bg-deny-fill/[0.05] align-top text-fg-faint"
                               >
                                 <td className="sticky left-0 z-[1] bg-ink-900 py-2 text-center font-mono text-base font-bold leading-[18px] text-deny">
                                   <DiffMark kind="removed" />
@@ -1569,7 +1569,7 @@ export function PolicyEditor({
                       {removed.collections.map((c) => (
                         <tr
                           key={`removed-collection:${c.name}`}
-                          className="border-b border-line bg-deny/[0.05] text-fg-faint"
+                          className="border-b border-line bg-deny-fill/[0.05] text-fg-faint"
                         >
                           <td className="sticky left-0 z-[1] bg-ink-900 text-center font-mono text-base font-bold text-deny">
                             <DiffMark kind="removed" />

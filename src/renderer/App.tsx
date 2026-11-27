@@ -462,7 +462,7 @@ export default function App() {
         <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
         {refreshError && (
           <span
-            className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-deny"
+            className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-deny-fill"
             aria-hidden
           />
         )}
@@ -477,7 +477,7 @@ export default function App() {
               Auto-refresh
             </span>
           }
-          triggerClassName="flex h-9 w-5 items-center justify-center text-fg-faint hover:bg-ink-800 hover:text-fg"
+          triggerClassName="flex h-9 w-6 items-center justify-center text-fg-faint hover:bg-ink-800 hover:text-fg"
           trigger={() => <ChevronDown size={12} />}
           items={AUTO_REFRESH_OPTIONS.map((m) => ({
             id: String(m),

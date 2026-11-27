@@ -3,7 +3,11 @@ const path = require('node:path');
 const { app, BrowserWindow, session } = require('electron');
 const { analyzeLayout } = require('./analysis.cjs');
 const { VIEWPORT_MATRIX, rowKey } = require('./matrix.cjs');
-const { SCENARIOS, prepareScenario } = require('./scenarios.cjs');
+const {
+  SCENARIOS,
+  prepareScenario,
+  assertAccountMenu,
+} = require('./scenarios.cjs');
 
 const ROOT = path.resolve(__dirname, '../..');
 const OUTPUT_DIR = path.join(ROOT, 'out', 'layout-check');
@@ -239,6 +243,8 @@ async function run() {
         mainWindow.setContentSize(row.width, row.height);
         mainWindow.webContents.setZoomFactor(row.zoom / 100);
         const cssViewport = await settleViewport(mainWindow.webContents, row);
+        if (scenario.action === 'account-menu')
+          await assertAccountMenu(mainWindow.webContents);
         const actualContentSize = mainWindow.getContentSize();
         const expectedWidth = row.width / (row.zoom / 100);
         const expectedHeight = row.height / (row.zoom / 100);

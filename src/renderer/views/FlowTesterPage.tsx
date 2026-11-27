@@ -166,7 +166,7 @@ export function FlowTesterPage({
                 </p>
               )}
               {error ? (
-                <p className="border-l-2 border-deny bg-deny/10 px-3 py-2 text-sm">
+                <p className="border-l-2 border-deny bg-deny-fill/10 px-3 py-2 text-sm">
                   Couldn't load this policy: {error}
                 </p>
               ) : (

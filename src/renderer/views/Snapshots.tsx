@@ -685,7 +685,7 @@ function StorageSetupCard({
 
 const ACTION_COLOR: Record<string, string> = {
   Allow: 'bg-allow text-allow',
-  Deny: 'bg-deny text-deny',
+  Deny: 'bg-deny-fill text-deny',
   DNAT: 'bg-dnat text-dnat',
 };
 
@@ -1264,7 +1264,7 @@ export function Snapshots({
                                                                     {r.name}
                                                                   </Truncate>
                                                                   {r.description && (
-                                                                    <Truncate className="text-[11px] text-fg-faint">
+                                                                    <Truncate className="text-xs text-fg-faint">
                                                                       {
                                                                         r.description
                                                                       }

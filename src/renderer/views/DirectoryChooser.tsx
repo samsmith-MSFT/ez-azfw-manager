@@ -106,7 +106,7 @@ export function DirectoryChooser({
         )}
 
         {error && (
-          <p className="mt-4 border-l-2 border-deny bg-deny/10 px-3 py-2 text-sm">
+          <p className="mt-4 border-l-2 border-deny bg-deny-fill/10 px-3 py-2 text-sm">
             {error}
           </p>
         )}

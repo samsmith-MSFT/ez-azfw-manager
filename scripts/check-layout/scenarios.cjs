@@ -9,6 +9,12 @@ const SCENARIOS = [
     ready: 'table tbody tr',
   },
   {
+    id: 'account-menu',
+    name: 'Account menu and zoom controls',
+    ready: 'table tbody tr',
+    action: 'account-menu',
+  },
+  {
     id: 'policies',
     name: 'Policies tab',
     tab: 'Policies',
@@ -265,6 +271,16 @@ async function applyAction(webContents, action) {
       'reopened rules sidebar overlay',
       `globalThis.document.querySelector('aside[aria-label="Policy and rule collection groups"]')?.classList.contains('absolute')`,
     );
+  } else if (action === 'account-menu') {
+    await webContents.executeJavaScript(`(() => {
+      globalThis.document.querySelector('button[aria-label="Account"]').click();
+      return true;
+    })()`);
+    await waitForPage(
+      webContents,
+      'Account popup',
+      `globalThis.document.querySelector('[role="menu"] [aria-label="Zoom controls"]')`,
+    );
   } else if (action === 'log-details') {
     await webContents.executeJavaScript(`(() => {
       globalThis.document.querySelector('[data-row-id]').click();
@@ -354,4 +370,55 @@ async function prepareScenario(webContents, rendererDir, scenario, viewport) {
   await settle(webContents);
 }
 
-module.exports = { SCENARIOS, prepareScenario };
+// Exercise the real portal at each matrix row, including zoom changes while it stays open.
+async function assertAccountMenu(webContents) {
+  await settle(webContents);
+  const error = await webContents.executeJavaScript(`(() => {
+    try {
+    const menu = globalThis.document.querySelector('[role="menu"]');
+    const trigger = globalThis.document.querySelector('button[aria-label="Account"]');
+    if (!menu || !trigger) throw new Error('Account popup is missing');
+    const rect = menu.getBoundingClientRect();
+    const anchor = trigger.getBoundingClientRect();
+    if (anchor.top < 0 || anchor.bottom > innerHeight)
+      throw new Error('Account trigger is outside the viewport: ' + JSON.stringify({top:anchor.top,bottom:anchor.bottom,height:innerHeight}));
+    if (rect.top < 7 || rect.bottom > innerHeight - 7 || rect.left < 7 || rect.right > innerWidth - 7)
+      throw new Error('Account popup is outside the viewport: ' + JSON.stringify({top:rect.top,bottom:rect.bottom,height:innerHeight}));
+    const controls = [
+      menu.querySelector('button[aria-label="Zoom out"]'),
+      menu.querySelector('button[aria-label="Zoom in"]'),
+      [...menu.querySelectorAll('button')].find(button => button.textContent.trim() === 'Reset'),
+      [...menu.querySelectorAll('[role="menuitem"]')].find(button => button.textContent.trim() === 'Sign out'),
+    ];
+    for (const button of controls) {
+      if (!button) throw new Error('Account control is missing');
+      button.scrollIntoView({block:'nearest'});
+      const bounds = button.getBoundingClientRect();
+      const hit = globalThis.document.elementFromPoint(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
+      if (bounds.top < rect.top || bounds.bottom > rect.bottom || !button.contains(hit))
+        throw new Error('Account control is not reachable: ' + (button.getAttribute('aria-label') || button.textContent));
+    }
+    menu.focus();
+    menu.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape',bubbles:true}));
+    return null;
+    } catch (error) { return error.message; }
+  })()`);
+  if (error) throw new Error(error);
+  await waitForPage(
+    webContents,
+    'Account Escape focus return',
+    `!globalThis.document.querySelector('[role="menu"]') && globalThis.document.activeElement?.getAttribute('aria-label') === 'Account'`,
+  );
+  await webContents.executeJavaScript(`(() => {
+    globalThis.document.activeElement.click();
+    return true;
+  })()`);
+  await waitForPage(
+    webContents,
+    'reopened Account popup',
+    `globalThis.document.querySelector('[role="menu"] [aria-label="Zoom controls"]')`,
+  );
+  await settle(webContents);
+}
+
+module.exports = { SCENARIOS, prepareScenario, assertAccountMenu };

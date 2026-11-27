@@ -27,7 +27,44 @@ describe('zoom steps', () => {
     expect(titleBarGeometry(2)).toEqual({ height: 72, trafficLightY: 22 });
   });
 
-  it('owns manual zoom, native chrome sync and wheel requests', () => {
+  it('waits for renderer load before applying saved page zoom', () => {
+    let factor = 1;
+    const contents = {
+      setZoomMode: vi.fn(),
+      setZoomFactor: vi.fn((next: number) => {
+        factor = next;
+      }),
+      getZoomFactor: () => factor,
+      on: vi.fn(),
+      off: vi.fn(),
+    };
+    const window = {
+      webContents: contents,
+      setTitleBarOverlay: vi.fn(),
+      setWindowButtonPosition: vi.fn(),
+    };
+
+    const zoom = createZoomController(window as never, 3);
+    expect(contents.setZoomFactor).not.toHaveBeenCalled();
+    if (process.platform === 'darwin') {
+      expect(window.setWindowButtonPosition).toHaveBeenLastCalledWith({
+        x: 14,
+        y: 33,
+      });
+    } else {
+      expect(window.setTitleBarOverlay).toHaveBeenLastCalledWith(
+        expect.objectContaining({ height: 108 }),
+      );
+    }
+
+    // main.ts invokes this after loadURL resolves, not while Chromium is navigating.
+    zoom.activate();
+
+    expect(contents.setZoomFactor).toHaveBeenCalledWith(3);
+    expect(factor).toBe(3);
+  });
+
+  it('owns isolated page zoom, native chrome sync and wheel requests', () => {
     let factor = 1;
     let wheel:
       | ((event: { preventDefault(): void }, direction: 'in' | 'out') => void)
@@ -52,9 +89,12 @@ describe('zoom steps', () => {
     const changed = vi.fn();
     const zoom = createZoomController(window as never, 1.25, changed);
 
-    expect(contents.setZoomMode).toHaveBeenCalledWith('manual');
-    expect(contents.setZoomFactor).toHaveBeenLastCalledWith(1.25);
+    expect(contents.setZoomMode).toHaveBeenCalledWith('isolated');
+    expect(contents.setZoomFactor).not.toHaveBeenCalled();
     expect(changed).not.toHaveBeenCalled();
+
+    zoom.activate();
+    expect(contents.setZoomFactor).toHaveBeenLastCalledWith(1.25);
 
     zoom.set(1.47);
     expect(factor).toBe(1.5);

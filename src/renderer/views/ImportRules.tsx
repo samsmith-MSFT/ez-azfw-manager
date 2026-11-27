@@ -348,7 +348,7 @@ export function ImportRules({
                             <p className="text-xs text-fg-faint">
                               {row.kind} · {row.action}
                             </p>
-                            <p className="mt-1 break-words font-mono text-[11px] text-fg-muted">
+                            <p className="mt-1 break-words font-mono text-xs text-fg-muted">
                               {summarizeRule(row.rule)}
                             </p>
                           </td>

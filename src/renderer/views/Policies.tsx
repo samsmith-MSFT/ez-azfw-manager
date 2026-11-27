@@ -330,7 +330,7 @@ export function Policies({
             )}
             {childCount > 0 && (
               <span
-                className="shrink-0 rounded bg-ink-800 px-1.5 text-[11px] text-fg-muted"
+                className="shrink-0 rounded bg-ink-800 px-1.5 text-xs text-fg-muted"
                 title="Child policies inherit this policy's rules, which are evaluated before their own."
               >
                 Parent of {childCount}
@@ -381,7 +381,7 @@ export function Policies({
             isThreatIntelMode(p?.threatIntelMode) &&
             p.threatIntelMode !== policyDraft.policyMode.before &&
             p.threatIntelMode !== policyDraft.policyMode.after && (
-              <p className="mt-1 text-[11px] text-deny" role="alert">
+              <p className="mt-1 text-xs text-deny" role="alert">
                 Changed in Azure; discard and refresh before retrying.
               </p>
             )}

@@ -1271,7 +1271,7 @@ export function DeployWizard({
       </dl>
 
       {errors.length > 0 ? (
-        <ul className="list-disc space-y-0.5 border border-deny/40 bg-deny/10 py-2 pl-7 pr-3 text-xs text-deny">
+        <ul className="list-disc space-y-0.5 border border-deny/40 bg-deny-fill/10 py-2 pl-7 pr-3 text-xs text-deny">
           {errors.map((e) => (
             <li key={e} className="whitespace-pre-line">
               {e}

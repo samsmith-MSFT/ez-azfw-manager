@@ -218,8 +218,6 @@ function createWindow(): void {
   });
   if (initial.maximized) mainWindow.maximize();
 
-  mainWindow.once('ready-to-show', () => mainWindow?.show());
-
   mainWindow.on('resize', scheduleWindowStateWrite);
   mainWindow.on('moved', () => {
     syncMinimumWindowSize();
@@ -268,9 +266,17 @@ function createWindow(): void {
   });
 
   const url = MAIN_WINDOW_VITE_DEV_SERVER_URL || `${APP_ORIGIN}/index.html`;
-  mainWindow.loadURL(url).catch((err: Error) => {
-    console.error(`[window] Couldn't load ${url}:`, err.message);
-  });
+  mainWindow
+    .loadURL(url)
+    .then(() => {
+      // Electron discards a page zoom applied before navigation. Activate it only after load,
+      // while the window is still hidden, so renderer and native controls zoom as one UI.
+      zoom?.activate();
+      if (mainWindow && !mainWindow.isDestroyed()) mainWindow.show();
+    })
+    .catch((err: Error) => {
+      console.error(`[window] Couldn't load ${url}:`, err.message);
+    });
   // Opt in with EZAZFW_DEVTOOLS=1. The application menu intentionally has no developer-tools role.
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL && process.env.EZAZFW_DEVTOOLS)
     mainWindow.webContents.openDevTools({ mode: 'detach' });

@@ -215,13 +215,13 @@ export function TokenPicker({
             <span
               key={t}
               title={o?.title ?? t}
-              className={`inline-flex max-w-full items-center gap-0.5 rounded border px-1.5 font-mono text-[11px] leading-5 ${o || !options.length ? 'border-azure/40 bg-azure/10 text-fg' : 'border-deny/50 bg-deny/10 text-deny'}`}
+              className={`inline-flex max-w-full items-center gap-0.5 rounded border px-1.5 font-mono text-xs leading-5 ${o || !options.length ? 'border-azure/40 bg-azure/10 text-fg' : 'border-deny/50 bg-deny-fill/10 text-deny'}`}
             >
               <span className="truncate">{label(t)}</span>
               <button
                 type="button"
                 disabled={disabled}
-                className="text-fg-faint hover:text-fg"
+                className="flex h-6 w-6 shrink-0 items-center justify-center text-fg-faint hover:text-fg"
                 aria-label={`Remove ${label(t)}`}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -328,7 +328,7 @@ export function TokenPicker({
                         {o.label}
                       </span>
                       {o.hint && (
-                        <span className="ml-auto shrink-0 truncate text-[11px] text-fg-faint">
+                        <span className="ml-auto shrink-0 truncate text-xs text-fg-faint">
                           {o.hint}
                         </span>
                       )}
@@ -343,7 +343,7 @@ export function TokenPicker({
                 </li>
               )}
             </ul>
-            <div className="flex items-center justify-between border-t border-line px-3 py-1 text-[11px] text-fg-faint">
+            <div className="flex items-center justify-between border-t border-line px-3 py-1 text-xs text-fg-faint">
               <span>
                 {tokens.length} selected
                 {matches.length > MAX_SHOWN &&
@@ -351,7 +351,7 @@ export function TokenPicker({
               </span>
               <button
                 type="button"
-                className="text-azure hover:underline"
+                className="min-h-6 px-1 text-azure hover:underline"
                 onClick={() => close(true)}
               >
                 Done

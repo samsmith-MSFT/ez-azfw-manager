@@ -223,7 +223,7 @@ export interface AzNetApi {
   installUpdate(): Promise<UpdateProgress>;
   /** Opens the newest release's page on GitHub in the browser. */
   openReleasePage(): Promise<void>;
-  /** Current user zoom as an exact factor, for a future renderer control. */
+  /** Current user zoom as an exact factor. */
   getZoom(): Promise<number>;
   setZoom(factor: number): Promise<number>;
   onZoomChanged(listener: (factor: number) => void): () => void;

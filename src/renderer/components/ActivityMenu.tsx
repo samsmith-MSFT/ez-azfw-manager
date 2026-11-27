@@ -168,7 +168,7 @@ export function ActivityMenu({
           />
         ) : unreadCount > 0 ? (
           <span
-            className="absolute right-1.5 top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-azure px-1 text-[9px] font-bold leading-none text-ink-950"
+            className="absolute right-1 top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-azure px-1 text-xs font-bold leading-none text-ink-950"
             aria-hidden
           >
             {unreadCount > 9 ? '9+' : unreadCount}

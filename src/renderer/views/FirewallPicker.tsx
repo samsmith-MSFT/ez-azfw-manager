@@ -146,7 +146,7 @@ export function FirewallPicker({
             <QuipSpinner topic="discover" />
           </div>
         ) : error && !firewalls.length ? (
-          <div className="m-6 max-w-2xl border-l-2 border-deny bg-deny/10 p-4 text-sm">
+          <div className="m-6 max-w-2xl border-l-2 border-deny bg-deny-fill/10 p-4 text-sm">
             <p className="font-semibold">Couldn't search your subscriptions.</p>
             <p className="mt-1 whitespace-pre-line break-words text-fg-muted">
               {error}

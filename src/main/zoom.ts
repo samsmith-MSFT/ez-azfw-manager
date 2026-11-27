@@ -1,25 +1,12 @@
 import type { BrowserWindow, Event } from 'electron';
+import {
+  normaliseZoom,
+  stepZoom,
+  ZOOM_STEPS,
+  type ZoomDirection,
+} from '../shared/zoom';
 
-export const ZOOM_STEPS = [
-  0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3,
-] as const;
-
-export type ZoomDirection = 'in' | 'out';
-
-export function normaliseZoom(factor: number): number {
-  if (!Number.isFinite(factor)) return 1;
-  return ZOOM_STEPS.reduce((best, step) =>
-    Math.abs(step - factor) < Math.abs(best - factor) ? step : best,
-  );
-}
-
-/** Moves one supported step, snapping non-step persisted values to the nearest step first. */
-export function stepZoom(factor: number, direction: ZoomDirection): number {
-  const nearest = normaliseZoom(factor);
-  const index = ZOOM_STEPS.indexOf(nearest as (typeof ZOOM_STEPS)[number]);
-  const next = direction === 'in' ? index + 1 : index - 1;
-  return ZOOM_STEPS[Math.max(0, Math.min(ZOOM_STEPS.length - 1, next))];
-}
+export { normaliseZoom, stepZoom, ZOOM_STEPS, type ZoomDirection };
 
 export function titleBarGeometry(factor: number): {
   height: number;
@@ -34,6 +21,8 @@ export function titleBarGeometry(factor: number): {
 
 export interface ZoomController {
   get(): number;
+  /** Applies the saved factor after the first renderer load has completed. */
+  activate(): number;
   set(factor: number): number;
   zoomIn(): number;
   zoomOut(): number;
@@ -42,8 +31,8 @@ export interface ZoomController {
 }
 
 /**
- * The only place that applies page zoom. Manual mode prevents Chromium's per-origin default from
- * racing persisted application state while retaining the Ctrl/Cmd+wheel event.
+ * The only place that applies page zoom. Isolated mode keeps zoom local to this window while
+ * retaining actual page scaling and the Ctrl/Cmd+wheel event. Manual mode does not scale the page.
  */
 export function createZoomController(
   window: BrowserWindow,
@@ -52,11 +41,9 @@ export function createZoomController(
 ): ZoomController {
   let factor = normaliseZoom(initialFactor);
   const contents = window.webContents;
-  contents.setZoomMode('manual');
+  contents.setZoomMode('isolated');
 
-  const apply = (requested: number, notify: boolean): number => {
-    factor = normaliseZoom(requested);
-    contents.setZoomFactor(factor);
+  const syncNativeChrome = () => {
     const geometry = titleBarGeometry(factor);
     if (process.platform === 'darwin') {
       window.setWindowButtonPosition({ x: 14, y: geometry.trafficLightY });
@@ -67,6 +54,12 @@ export function createZoomController(
         height: geometry.height,
       });
     }
+  };
+
+  const apply = (requested: number, notify: boolean): number => {
+    factor = normaliseZoom(requested);
+    contents.setZoomFactor(factor);
+    syncNativeChrome();
     if (notify) onChanged(factor);
     return factor;
   };
@@ -76,10 +69,13 @@ export function createZoomController(
     apply(stepZoom(factor, direction), true);
   };
   contents.on('zoom-changed', onWheel);
-  apply(factor, false);
+  // Chromium discards pre-navigation zoom in Electron. Keep native chrome aligned now, but do not
+  // touch the page until main.ts resolves loadURL and calls activate().
+  syncNativeChrome();
 
   return {
     get: () => factor,
+    activate: () => apply(factor, false),
     set: (next) => apply(next, true),
     zoomIn: () => apply(stepZoom(factor, 'in'), true),
     zoomOut: () => apply(stepZoom(factor, 'out'), true),

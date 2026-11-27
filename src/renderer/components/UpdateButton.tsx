@@ -200,7 +200,7 @@ function CheckResultDialog({
       {result.kind === 'error' ? (
         <div
           role="alert"
-          className="flex gap-2 border border-deny/40 bg-deny/10 p-3 text-sm text-deny"
+          className="flex gap-2 border border-deny/40 bg-deny-fill/10 p-3 text-sm text-deny"
         >
           <AlertTriangle size={16} className="shrink-0" />
           <span className="break-words">
@@ -336,7 +336,7 @@ function UpdateDialog({
       {error && (
         <div
           role="alert"
-          className="mb-4 flex gap-2 border border-deny/40 bg-deny/10 p-3 text-sm text-deny"
+          className="mb-4 flex gap-2 border border-deny/40 bg-deny-fill/10 p-3 text-sm text-deny"
         >
           <AlertTriangle size={16} className="shrink-0" />
           <span className="break-words">{error}</span>

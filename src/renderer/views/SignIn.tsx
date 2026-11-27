@@ -85,7 +85,7 @@ export function SignIn({
         )}
 
         {error && (
-          <div className="mt-5 border-l-2 border-deny bg-deny/10 px-3 py-2 text-sm">
+          <div className="mt-5 border-l-2 border-deny bg-deny-fill/10 px-3 py-2 text-sm">
             <p className="font-semibold">Sign-in didn't complete.</p>
             <p className="mt-0.5 whitespace-pre-line text-fg-muted">{error}</p>
           </div>

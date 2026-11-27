@@ -104,16 +104,31 @@ export function Dropdown({
   const place = useCallback(() => {
     const anchor = button.current?.getBoundingClientRect();
     if (!anchor) return;
+    const rect = menu.current?.getBoundingClientRect();
+    if (!rect) return;
+    const availableWidth = Math.max(0, window.innerWidth - 16);
+    const availableHeight = Math.max(0, window.innerHeight - 16);
+    const width = Math.min(
+      fullWidth ? anchor.width : Math.max(rect.width, anchor.width),
+      availableWidth,
+    );
+    const height = Math.min(rect.height, availableHeight);
+    const below = window.innerHeight - 8 - anchor.bottom - 4;
+    const above = anchor.top - 8 - 4;
+    if (!flipUp.current && height > below && above > below)
+      flipUp.current = true;
+    // When neither side fits (notably Account at 300%), overlap the anchor rather than leaving
+    // the menu offscreen. Its scrolling body keeps all controls reachable in short viewports.
+    const top = flipUp.current ? anchor.top - 4 - height : anchor.bottom + 4;
+    const left = align === 'right' ? anchor.right - width : anchor.left;
     const style: CSSProperties = {
       position: 'fixed',
       maxWidth: 'calc(100vw - 1rem)',
+      top: Math.max(8, Math.min(top, window.innerHeight - 8 - height)),
+      left: Math.max(8, Math.min(left, window.innerWidth - 8 - width)),
     };
-    if (fullWidth) style.width = Math.min(anchor.width, window.innerWidth - 16);
-    else style.minWidth = Math.min(anchor.width, window.innerWidth - 16);
-    if (align === 'right') style.right = window.innerWidth - anchor.right;
-    else style.left = anchor.left;
-    if (flipUp.current) style.bottom = window.innerHeight - anchor.top + 4;
-    else style.top = anchor.bottom + 4;
+    if (fullWidth) style.width = width;
+    else style.minWidth = Math.min(anchor.width, availableWidth);
     setPosition(style);
   }, [align, fullWidth]);
 
@@ -128,36 +143,14 @@ export function Dropdown({
     if (!open) return;
     window.addEventListener('scroll', place, true);
     window.addEventListener('resize', place);
+    const observer = new ResizeObserver(place);
+    if (menu.current) observer.observe(menu.current);
     return () => {
       window.removeEventListener('scroll', place, true);
       window.removeEventListener('resize', place);
+      observer.disconnect();
     };
   }, [open, place]);
-
-  useLayoutEffect(() => {
-    if (!open || !position || !menu.current) return;
-    const rect = menu.current.getBoundingClientRect();
-    const anchor = button.current?.getBoundingClientRect();
-    if (rect.right > window.innerWidth - 8)
-      setPosition((current) => ({
-        ...current,
-        left: Math.max(8, window.innerWidth - 8 - rect.width),
-        right: undefined,
-      }));
-    else if (rect.left < 8)
-      setPosition((current) => ({ ...current, left: 8, right: undefined }));
-    // Flip up only when it doesn't fit below but does fit above.
-    if (
-      !flipUp.current &&
-      anchor &&
-      rect.bottom > window.innerHeight - 8 &&
-      anchor.top - rect.height > 8
-    ) {
-      flipUp.current = true;
-      place();
-    }
-    // Only once the menu has its first position.
-  }, [position === undefined]);
 
   useLayoutEffect(() => {
     if (!open || !position || !menu.current) return;
@@ -255,13 +248,15 @@ export function Dropdown({
             role="menu"
             tabIndex={-1}
             style={position ?? { position: 'fixed', visibility: 'hidden' }}
-            className={`z-50 ${fullWidth ? '' : widthClass} flex max-h-[calc(100vh-1rem)] max-w-[calc(100vw-1rem)] flex-col overflow-hidden border border-line bg-ink-850 shadow-[0_16px_40px_rgba(4,10,20,0.55)] focus:outline-none`}
+            className={`z-50 ${fullWidth ? '' : widthClass} flex max-h-[calc(100vh-1rem)] max-w-[calc(100vw-1rem)] flex-col overflow-y-auto border border-line bg-ink-850 shadow-[0_16px_40px_rgba(4,10,20,0.55)] focus:outline-none`}
           >
             {header && (
-              <div className="border-b border-line px-3 py-2">{header}</div>
+              <div className="shrink-0 border-b border-line px-3 py-2">
+                {header}
+              </div>
             )}
             {searchable && (
-              <div className="relative border-b border-line p-2">
+              <div className="relative shrink-0 border-b border-line p-2">
                 <Search
                   size={14}
                   className="absolute left-4 top-[17px] text-fg-faint"
@@ -280,7 +275,7 @@ export function Dropdown({
               </div>
             )}
             <div
-              className={`min-h-0 overflow-y-auto py-1 ${searchable ? 'max-h-64' : ''}`}
+              className={`min-h-0 shrink-0 overflow-y-auto py-1 ${searchable ? 'max-h-64' : ''}`}
             >
               {visible.map((item, i) =>
                 item.divider ? (
